@@ -1,19 +1,19 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-import ui.MainMenu;
+import database.DBConnection;
+import ui.MainMenu; // Importante para que encuentre el menú de los 5 puntos
 
-/**
- *
- * @author Usuario
- */
 public class Main {
-        public static void main(String[] args) {
-        try {
+    public static void main(String[] args) {
+        // 1. Intentar conectar
+        if (DBConnection.getConnection() != null) {
+            
+            // 2. LANZAR EL MENÚ PRINCIPAL (El de los 5 puntos)
             MainMenu.mostrar();
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            
+            // 3. Al salir, cerrar
+            DBConnection.closeConnection();
+            
+        } else {
+            System.err.println("Error: No se pudo conectar a la base de datos.");
         }
     }
 }
