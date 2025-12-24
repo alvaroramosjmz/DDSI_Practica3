@@ -15,7 +15,7 @@ public class TableManagerLectores {
     public void crearEstructuraLectores() throws SQLException {
         Statement stmt = connection.createStatement();
 
-        // 1. Borrar elementos previos si existen
+        // 1. Borrar elementos previos si existen   
         try { stmt.execute("DROP TRIGGER TRG_LECTORES_MAYUSCULAS"); } catch (SQLException e) {}
         try { stmt.execute("DROP TABLE LECTORES CASCADE CONSTRAINTS"); } catch (SQLException e) {}
         try { stmt.execute("DROP SEQUENCE SEQ_LECTORES"); } catch (SQLException e) {}

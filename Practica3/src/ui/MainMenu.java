@@ -6,8 +6,11 @@ package ui;
 
 import database.DBConnection;
 import database.TableManagerLectores;
+import database.TableManagerEspacios;
 import lectores.LectorDAO;
 import lectores.GestionLectores;
+import espacios.EspaciosDAO;
+import espacios.GestionEspacios;
 import java.sql.Connection;
 import java.util.Scanner;
 
@@ -44,7 +47,15 @@ public class MainMenu {
                     }
                     
                     case 3 -> System.out.println("[INFO] Subsistema 3: Reservas (Pendiente).");
-                    case 4 -> System.out.println("[INFO] Subsistema 4: Espacios (Pendiente).");
+                    case 4 -> {
+                        try {
+                            EspaciosDAO espaciosDAO = new EspaciosDAO(conn);
+                            GestionEspacios gestionEspacios = new GestionEspacios(espaciosDAO);
+                            gestionEspacios.mostrarMenu();
+                        } catch (Exception e) {
+                            System.out.println("[ERROR] No se pudo iniciar el subsistema de espacios: " + e.getMessage());
+                        }
+                    }
                     case 5 -> System.out.println("[INFO] Subsistema 5: Seguridad (Pendiente).");
                     
                     case 9 -> {
@@ -52,8 +63,27 @@ public class MainMenu {
                         System.out.println("¡CUIDADO! Se borrarán todos los datos de lectores.");
                         System.out.print("¿Estás seguro? (S/N): ");
                         if (sc.nextLine().equalsIgnoreCase("S")) {
-                            new TableManagerLectores(conn).crearEstructuraLectores();
-                            System.out.println("Tablas de Lectores recreadas con éxito.");
+                            try {
+                                System.out.println("\n[MANTENIMIENTO BD]");
+
+                                // 1) Lectores
+                                TableManagerLectores tmLectores = new TableManagerLectores(conn);
+                                tmLectores.crearEstructuraLectores();
+
+                                // 2) Espacios
+                                TableManagerEspacios tmEspacios = new TableManagerEspacios(conn);
+                                tmEspacios.crearEstructuraEspacios();
+
+                                conn.commit();
+                                System.out.println("[OK] Estructura de la base de datos creada correctamente.");
+
+                            } catch (Exception e) {
+                                try {
+                                    conn.rollback();
+                                } catch (Exception ignored) {}
+
+                                System.out.println("[ERROR] Fallo en el mantenimiento de la BD: " + e.getMessage());
+                            }
                         }
                     }
                     
