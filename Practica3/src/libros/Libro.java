@@ -1,0 +1,67 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package libros;
+
+import java.util.Date;
+
+/**
+ *
+ * @author Usuario
+ */
+public class Libro {
+    
+    
+    private String isbn;
+    private String autor;
+    private String titulo;
+    private String editorial;
+    private Date fechaPublicacion;
+    private int numPaginas;
+    private int edicion;
+    private String genero;
+    
+    // Constructor por defecto
+    public Libro() {}
+    
+    // Constructor con parámetros
+    public Libro(String isbn, String autor, String titulo, String editorial,
+                 Date fechaPublicacion, int numPaginas, int edicion, String genero) {
+        this.isbn = isbn;
+        this.autor = autor;
+        this.titulo = titulo;
+        this.editorial = editorial;
+        this.fechaPublicacion = fechaPublicacion;
+        this.numPaginas = numPaginas;
+        this.edicion = edicion;
+        this.genero = genero;
+    }
+    
+    // Getters y setters
+    public String getIsbn() { return isbn; }
+    public void setIsbn(String isbn) { this.isbn = isbn; }
+
+    public String getAutor() { return autor; }
+    public void setAutor(String autor) { this.autor = autor; }
+
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
+
+    public String getEditorial() { return editorial; }
+    public void setEditorial(String editorial) { this.editorial = editorial; }
+
+    public Date getFechaPublicacion() { return fechaPublicacion; }
+    public void setFechaPublicacion(Date fechaPublicacion) { this.fechaPublicacion = fechaPublicacion; }
+
+    public int getNumPaginas() { return numPaginas; }
+    public void setNumPaginas(int numPaginas) { this.numPaginas = numPaginas; }
+
+    public int getEdicion() { return edicion; }
+    public void setEdicion(int edicion) { this.edicion = edicion; }
+
+    public String getGenero() { return genero; }
+    public void setGenero(String genero) { this.genero = genero; }
+
+
+}
