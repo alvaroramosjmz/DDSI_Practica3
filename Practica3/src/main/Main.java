@@ -3,7 +3,6 @@ import database.DBConnection;
 import ui.MainMenu; // Importante para que encuentre el menú de los 5 puntos
 import ui.LoginMenu; // Importante para que encuentre el menú de login
 import usuarioDeSistema.UsuarioDeSistema;
-import database.TableManagerUsuariosDeSistema;
 import java.sql.Connection;
 
 public class Main {
