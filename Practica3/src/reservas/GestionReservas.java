@@ -13,26 +13,26 @@ public class GestionReservas {
     private final ReservaLibroDAO dao; // Recibe el DAO directamente
     private final Scanner sc;
 
-    // CONSTRUCTOR IDÉNTICO AL DE TUS COMPAÑEROS
+
     public GestionReservas(ReservaLibroDAO dao) {
         this.dao = dao;
-        this.sc = new Scanner(System.in);
+        this.sc = new Scanner(System.in); //sirve para leer lo que el usuario escribe
     }
 
     public void mostrarMenu() {
         int opcion = -1;
         do {
             System.out.println("\n===== SUBSISTEMA 3: RESERVA DE LIBROS =====");
-            System.out.println("1. Realizar Reserva (RF-3.1)");
-            System.out.println("2. Cancelar Reserva (RF-3.2)");
-            System.out.println("3. Comprobar Reserva / Retirar (RF-3.3)");
-            System.out.println("4. Devolver Libro (RF-3.4)");
-            System.out.println("5. Historial de Usuario (RF-3.5)");
+            System.out.println("1. Realizar Reserva ");
+            System.out.println("2. Cancelar Reserva ");
+            System.out.println("3. Comprobar Reserva / Retirar ");
+            System.out.println("4. Devolver Libro ");
+            System.out.println("5. Historial de Usuario ");
             System.out.println("0. Volver");
             System.out.print("Seleccione una opción: ");
 
             try {
-                String input = sc.nextLine();
+                String input = sc.nextLine(); //leemos la linea como texto y luego lo pasamos a numero
                 opcion = Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 opcion = -1;
@@ -121,10 +121,11 @@ public class GestionReservas {
         } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
     }
 
+    //politica de privacidad
     private boolean avisoDatosPersonales() {
         System.out.println("\n[AVISO LEGAL] Operación con datos personales.");
         System.out.print("¿Consiente el tratamiento? (S/N): ");
         String s = sc.nextLine();
-        return s != null && s.trim().equalsIgnoreCase("S");
+        return s != null && s.trim().equalsIgnoreCase("S"); //compruebo que s no sea nulo y elimino espacios con trim, comparo para ver si es verdadero ya sea S o s
     }
 }
