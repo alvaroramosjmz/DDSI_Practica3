@@ -12,6 +12,8 @@ import lectores.LectorDAO;
 import lectores.GestionLectores;
 import espacios.EspaciosDAO;
 import espacios.GestionEspacios;
+import reservas.GestionReservas;
+import reservas.ReservaLibroDAO;
 import usuarioDeSistema.GestionSeguridad;
 import usuarioDeSistema.UsuarioDeSistema;
 import java.sql.Connection;
@@ -52,7 +54,23 @@ public class MainMenu {
                         gestion.mostrarMenu();
                     }
                     
-                    case 3 -> System.out.println("[INFO] Subsistema 3: Reservas (Pendiente).");
+                    case 3 -> {
+                        try {
+                            // 1. Crear el DAO 
+                            
+                            reservas.ReservaLibroDAO reservaDAO = new reservas.ReservaLibroDAO(conn);
+
+                            // 2. Crear el Gestor (Interfaz)
+                            reservas.GestionReservas gestionReservas = new reservas.GestionReservas(reservaDAO);
+
+                            // 3. Lanzar el menú
+                            gestionReservas.mostrarMenu();
+
+                        } catch (Exception e) {
+                            System.out.println("[ERROR] Fallo al abrir Reservas: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
                     case 4 -> {
                         try {
                             EspaciosDAO espaciosDAO = new EspaciosDAO(conn);

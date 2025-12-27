@@ -20,7 +20,7 @@ public class GestionReservas {
     }
 
     public void mostrarMenu() {
-        int opcion = -1;
+        int opcion;
         do {
             System.out.println("\n===== SUBSISTEMA 3: RESERVA DE LIBROS =====");
             System.out.println("1. Realizar Reserva ");
