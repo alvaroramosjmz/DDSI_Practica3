@@ -4,10 +4,15 @@
  */
 package libros;
 
-import java.util.Date;
+import java.util.Date; //representa fecha y hora (facilmente convertible en SQL)
 
 /**
- *
+ * Clase que representa la entidad Libro del sistema.
+ * Contiene los datos básicos de un libro almacenado en la biblioteca
+ * 
+ * No incluye lógica ni validaciones (se realizan en la capa de servicio no 
+ * en el modelo)
+ * 
  * @author Usuario
  */
 public class Libro {
@@ -25,7 +30,7 @@ public class Libro {
     // Constructor por defecto
     public Libro() {}
     
-    // Constructor con parámetros
+    // Constructor con parámetros 
     public Libro(String isbn, String autor, String titulo, String editorial,
                  Date fechaPublicacion, int numPaginas, int edicion, String genero) {
         this.isbn = isbn;
