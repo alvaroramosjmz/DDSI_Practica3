@@ -4,13 +4,17 @@
  */
 package libros;
 
-import java.util.Date;
+import java.util.Date;  //representa fecha y hora (facilmente convertible en SQL)
 /**
- *
+ * Clase IncidenciaEjemplar.
+ * 
+ * Representa una incidencia asociada a un ejemplar concreto de un libro.
+ * Permite registrar información sobre problemas como pérdidas, daños
+ * o reparaciones, así como su prioridad y posible fecha de resolución.
+ * 
  * @author Usuario
  */
 public class IncidenciaEjemplar {
-    
     
     private int idIncidencia;
     private String isbn;
