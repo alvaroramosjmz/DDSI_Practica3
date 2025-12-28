@@ -8,6 +8,7 @@ import database.DBConnection;
 import database.TableManagerLectores;
 import database.TableManagerEspacios;
 import database.TableManagerUsuariosDeSistema;
+import database.TableManagerReservas;
 import lectores.LectorDAO;
 import lectores.GestionLectores;
 import espacios.EspaciosDAO;
@@ -55,15 +56,9 @@ public class MainMenu {
                     }
                     
                     case 3 -> {
-                        try {
-                            // 1. Crear el DAO 
-                            
+                        try {                          
                             reservas.ReservaLibroDAO reservaDAO = new reservas.ReservaLibroDAO(conn);
-
-                            // 2. Crear el Gestor (Interfaz)
                             reservas.GestionReservas gestionReservas = new reservas.GestionReservas(reservaDAO);
-
-                            // 3. Lanzar el menú
                             gestionReservas.mostrarMenu();
 
                         } catch (Exception e) {
@@ -103,6 +98,10 @@ public class MainMenu {
                                 // 3) Usuarios de Sistema
                                 TableManagerUsuariosDeSistema tmUsuarios = new TableManagerUsuariosDeSistema(conn);
                                 tmUsuarios.crearEstructuraUsuarios();
+                                
+                                // 4) Reservas
+                                TableManagerReservas tmReservas = new TableManagerReservas(conn);
+                                tmReservas.crearEstructuraReservas();
 
                                 conn.commit();
                                 System.out.println("[OK] Estructura de la base de datos creada correctamente.");
