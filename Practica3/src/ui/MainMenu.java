@@ -9,6 +9,10 @@ import database.TableManagerLectores;
 import database.TableManagerEspacios;
 import database.TableManagerUsuariosDeSistema;
 import database.TableManagerReservas;
+import libros.LibroDAO;
+import libros.EjemplarDAO;
+import libros.IncidenciaEjemplarDAO;
+import libros.GestionLibros;
 import lectores.LectorDAO;
 import lectores.GestionLectores;
 import espacios.EspaciosDAO;
@@ -46,7 +50,19 @@ public class MainMenu {
                 opcion = Integer.parseInt(sc.nextLine());
 
                 switch (opcion) {
-                    case 1 -> System.out.println("[INFO] Subsistema 1: Libros (Pendiente).");
+                    case 1 -> {
+                        try{
+                            LibroDAO libroDAO = new LibroDAO(conn);
+                            EjemplarDAO ejemplarDAO = new EjemplarDAO(conn);
+                            IncidenciaEjemplarDAO incidenciaDAO = new IncidenciaEjemplarDAO(conn);
+                            GestionLibros gestionLibros = new GestionLibros(libroDAO, ejemplarDAO, incidenciaDAO);
+                            gestionLibros.mostrarMenu();
+                        } catch (Exception e) {
+                            System.out.println("[ERROR] No se pudo iniciar el subsistema de espacios: " + e.getMessage());
+                        }
+                        
+                    }  
+
                     
                     case 2 -> {
                         // ENTRADA LIMPIA: Solo cargamos el menú de lectores

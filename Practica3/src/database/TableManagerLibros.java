@@ -43,9 +43,9 @@ public class TableManagerLibros {
                 Autor VARCHAR(20) NOT NULL,
                 Titulo VARCHAR(150) NOT NULL,
                 Editorial VARCHAR(20),
-                FechaPublicacion DATE NOT NULL,
-                NumPaginas INT NOT NULL,
-                Edicion INT NOT NULL,
+                FechaPublicacion DATE,
+                NumPaginas INT,
+                Edicion INT,
                 Genero VARCHAR(50)
             )
         """;

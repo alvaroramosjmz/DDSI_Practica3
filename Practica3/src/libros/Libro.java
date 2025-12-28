@@ -23,8 +23,8 @@ public class Libro {
     private String titulo;
     private String editorial;
     private Date fechaPublicacion;
-    private int numPaginas;
-    private int edicion;
+    private Integer numPaginas;
+    private Integer edicion;
     private String genero;
     
     // Constructor por defecto
@@ -32,7 +32,7 @@ public class Libro {
     
     // Constructor con parámetros 
     public Libro(String isbn, String autor, String titulo, String editorial,
-                 Date fechaPublicacion, int numPaginas, int edicion, String genero) {
+                 Date fechaPublicacion, Integer numPaginas, Integer edicion, String genero) {
         this.isbn = isbn;
         this.autor = autor;
         this.titulo = titulo;
@@ -59,10 +59,10 @@ public class Libro {
     public Date getFechaPublicacion() { return fechaPublicacion; }
     public void setFechaPublicacion(Date fechaPublicacion) { this.fechaPublicacion = fechaPublicacion; }
 
-    public int getNumPaginas() { return numPaginas; }
+    public Integer getNumPaginas() { return numPaginas; }
     public void setNumPaginas(int numPaginas) { this.numPaginas = numPaginas; }
 
-    public int getEdicion() { return edicion; }
+    public Integer getEdicion() { return edicion; }
     public void setEdicion(int edicion) { this.edicion = edicion; }
 
     public String getGenero() { return genero; }

@@ -46,15 +46,41 @@ public class LibroDAO {
         // preparada para recibir los valores que le faltan
         PreparedStatement ps = conexion.prepareStatement(sql);
                 
-        // El nº indica la pos del ?, setXxx el tipo de dato y Java lo convierte a SQL
+        // Asigno los valores a los parámetros
         ps.setString(1, libro.getIsbn());
         ps.setString(2, libro.getAutor());
         ps.setString(3, libro.getTitulo());
-        ps.setString(4, libro.getEditorial());
-        ps.setDate(5, new java.sql.Date(libro.getFechaPublicacion().getTime()));
-        ps.setInt(6, libro.getNumPaginas());
-        ps.setInt(7, libro.getEdicion());
-        ps.setString(8, libro.getGenero());
+        
+        // editorial, fechaPublicacion, numPaginas, genero y edicion no eran obligatorios
+        if (libro.getEditorial() != null){
+            ps.setString(4, libro.getEditorial());
+        }else{
+            ps.setNull(4, java.sql.Types.VARCHAR);
+        }
+
+        if (libro.getFechaPublicacion() != null){
+            ps.setDate(5, new java.sql.Date(libro.getFechaPublicacion().getTime()));
+        }else{
+            ps.setNull(5, java.sql.Types.DATE);
+        }
+
+        if (libro.getNumPaginas() != null){
+            ps.setInt(6, libro.getNumPaginas());
+        }else{
+            ps.setNull(6, java.sql.Types.INTEGER);
+        }
+    
+        if (libro.getEdicion() != null) {
+            ps.setInt(7, libro.getEdicion());
+        } else {
+            ps.setNull(7, java.sql.Types.INTEGER);
+        }
+        
+        if (libro.getGenero() != null) {
+            ps.setString(8, libro.getGenero());
+        } else {
+            ps.setNull(8, java.sql.Types.VARCHAR);
+        }
         
         // Ejecutamos la sentancia y cerramos el statement
         ps.executeUpdate();

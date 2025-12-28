@@ -197,4 +197,65 @@ public class EjemplarDAO {
         // Devuelvo estado obtenido (si no existe el ejemplar devuelve null)
         return estado;
     }
+    
+    // Devuelve el número total de ejemplares asociados a un libro
+    public int contarEjemplares(String isbn) throws SQLException {
+
+        //Sentencia SQL que cuenta todos los ejemplares de un ISBN
+        String sql = "SELECT COUNT(*) FROM EJEMPLAR WHERE ISBN = ?";
+
+        //Preparamos la consulta
+        PreparedStatement ps = conexion.prepareStatement(sql);
+
+        //Asignamos el ISBN al parámetro
+        ps.setString(1, isbn);
+
+        //Ejecutamos la consulta y almacenamos el resultado
+        ResultSet rs = ps.executeQuery();
+
+        //Avanzamos hasta la primera fila del resultado
+        rs.next();
+
+        //Obtenemos el valor de la consulta
+        int total = rs.getInt(1);
+
+        //Cerramos recursos
+        rs.close();
+        ps.close();
+
+        //Devolvemos el número total de ejemplares
+        return total;
+    }
+    
+    // Devuelve el número de ejemplares DISPONIBLES de un libro
+    public int contarEjemplaresDisponibles(String isbn) throws SQLException {
+
+        //Consulta SQL que cuenta solo los ejemplares en estado DISPONIBLE
+        String sql = "SELECT COUNT(*) FROM EJEMPLAR WHERE ISBN = ? AND Estado = 'DISPONIBLE'";
+
+        //Preparamos la sentencia
+        PreparedStatement ps = conexion.prepareStatement(sql);
+
+        //Asociamos el ISBN al parámetro
+        ps.setString(1, isbn);
+
+        //Ejecutamos la consulta y guardamos el resultado
+        ResultSet rs = ps.executeQuery();
+
+        //Accedemos a la primera fila
+        rs.next();
+
+        //Leemos el número de ejemplares disponibles
+        int disponibles = rs.getInt(1);
+
+        //Cerramos recursos
+        rs.close();
+        ps.close();
+
+        //Devolvemos el resultado
+        return disponibles;
+    }
+
+
+
 }
