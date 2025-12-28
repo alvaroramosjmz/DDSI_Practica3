@@ -5,6 +5,14 @@
 package libros;
 
 /**
+ * Clase Ejemplar
+ * 
+ * Representa un ejemplar físico dentro del inventario de la biblioteca. Cada
+ * ejemplar está asociado a un libro mediante su ISBN y se identifica de forma
+ * única por el código de ejemplar. 
+ * 
+ * Cada ejemplar tiene un estado que indica su disponibilidad (disponible,
+ * no_disponible o descatalogado).
  *
  * @author Usuario
  */
@@ -12,7 +20,7 @@ public class Ejemplar {
     
     private String isbn;
     private int codEjemplar;
-    private EstadoEjemplar estado;
+    private EstadoEjemplar estado; // puede ser {disponible, no_disponible, descatalogado}
     
     
     // Constructor por defecto
@@ -26,7 +34,7 @@ public class Ejemplar {
         this.estado = estado;
     }
 
-    // getters y setters
+    // Getters y Setters
     public String getIsbn() { return isbn; }
     public void setIsbn(String isbn) { this.isbn = isbn; }
 

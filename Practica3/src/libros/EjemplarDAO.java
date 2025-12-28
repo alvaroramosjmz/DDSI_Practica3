@@ -4,110 +4,197 @@
  */
 package libros;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Connection; // conexión activa con la DB mediante JDBC
+import java.sql.SQLException; // para lanzar excepciones cuando ocurren errores SQL o de conexion
+import java.sql.PreparedStatement; // para ejcutar sentencias SQL parametrizadas
+import java.sql.ResultSet; // para almacenar los datos obtenidos en una consulta SQL
+
 
 /**
  *
+ * DAO (Data Access Object) de la entidad Ejemplar.
+ * 
+ * Esta clase encapsula todas las operaciones de acceso a datos relacionadas 
+ * con la tabla EJEMPLAR, permitiendo gestionar el alta, consulta y cambio de 
+ * estado de los ejemplares
+ * 
+ * 
  * @author Usuario
  */
 public class EjemplarDAO {
     
     private Connection conexion;
-
+    
+    
+    // Constructor con parámetros (recibe una conexion JDBC previa)
     public EjemplarDAO(Connection conexion) {
         this.conexion = conexion;
     }
 
-    // Genera un nuevo código de ejemplar para un libro (MAX + 1)
+    // Genera un nuevo código de ejemplar para un libro (se obtiene como el
+    // valor MAX ya existente + 1)
     public int generarNuevoCodigoEjemplar(String isbn) throws SQLException {
-        String sql = "SELECT COALESCE(MAX(CodEjemplar),0) + 1 FROM EJEMPLAR WHERE ISBN = ?";
+        
+        // Sentencia que lee todos los CodEjemplar con un ISBN concreto y toma máximo
+        // si no hay 0 
+        String sql = "SELECT COALESCE(MAX(CodEjemplar),0) FROM EJEMPLAR WHERE ISBN = ?";
+        
+        // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno valor al parámetro
         ps.setString(1, isbn);
-
+        
+        // Ejecuto la consulta
         ResultSet rs = ps.executeQuery();
+        
+        // Avanzo a la primera fila (en este caso única) fila del resultado
         rs.next();
-        int nuevoCodigo = rs.getInt(1);
-
+        
+         // Genero el siguiente código
+        int nuevoCodigo = rs.getInt(1) + 1;
+        
+        // Cierro los recursos usados
         rs.close();
         ps.close();
+        
+        // Devuelvo el nuevo código
         return nuevoCodigo;
     }
 
-    // Inserta un nuevo ejemplar en estado DISPONIBLE
+    // Inserta un nuevo ejemplar en la BD con el estado que se indique
     public void insertarEjemplar(String isbn, int codEjemplar, EstadoEjemplar estado) throws SQLException {
+        
+        // Sentencia SQL DE inserción de un nuevo ejemplar
         String sql = "INSERT INTO EJEMPLAR (ISBN, CodEjemplar, Estado) VALUES (?, ?, ?)";
+        
+        // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno valor a los parámetros
         ps.setString(1, isbn);
         ps.setInt(2, codEjemplar);
-        ps.setString(3, estado.name());
-
+        ps.setString(3, estado.name()); // el enum se guarda como texto
+        
+        // Ejecuto la inserción
         ps.executeUpdate();
+        
+        // Cierro el recurso utilizado
         ps.close();
     }
 
-    // Obtiene un ejemplar disponible de un libro (el primero que encuentre)
+    // Obtiene el codEjemplar disponible de un libro (el primero que encuentre)
+    // devuelve null si no hay ninguno
     public Integer obtenerEjemplarDisponible(String isbn) throws SQLException {
+        
+        // Consulta SQL que busca ejemplares en estado DISPONIBLE
         String sql = "SELECT CodEjemplar FROM EJEMPLAR WHERE ISBN = ? AND Estado = 'DISPONIBLE'";
+        
+        // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno valor al parámetro
         ps.setString(1, isbn);
-
+        
+        // Ejecuto la consulta
         ResultSet rs = ps.executeQuery();
+        
+        // Variable que almacenará el código encontrado (si no hay se queda como null)
         Integer cod = null;
+        
+        // Si existe ejempalr con ese ISBN, se convierte el codEjemplar 
         if (rs.next()) {
             cod = rs.getInt("CodEjemplar");
         }
-
+        
+        // Se cierran los recursos
         rs.close();
         ps.close();
+        
+        // Devuelvo el código del priemr ejemplar disponible o null si no hay
         return cod;
     }
 
-    // Cambia el estado de un ejemplar (baja lógica)
+    // Cambia el estado de un ejemplar concreto (baja lógica o cambio de disponibilidad)
     public void cambiarEstadoEjemplar(String isbn, int codEjemplar, EstadoEjemplar estado) throws SQLException {
+        
+        // Sentencia SQL para actualizar el estado del ejemplar
         String sql = "UPDATE EJEMPLAR SET Estado = ? WHERE ISBN = ? AND CodEjemplar = ?";
+        
+        // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno valores a los parámetros 
         ps.setString(1, estado.name());
         ps.setString(2, isbn);
         ps.setInt(3, codEjemplar);
-
+        
+        // Ejecuto la actualización
         ps.executeUpdate();
+        
+        // Cierro el recurso utilizado
         ps.close();
     }
 
     // Comprueba si existe un ejemplar concreto (ISBN + CodEjemplar)
     public boolean existeEjemplar(String isbn, int codEjemplar) throws SQLException {
+        
+         // Consulta SQL que cuenta los ejemplares con ese ISBN y código
         String sql = "SELECT COUNT(*) FROM EJEMPLAR WHERE ISBN = ? AND CodEjemplar = ?";
+        
+        // Se prepara la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Se asignan los valores a los parámetros
         ps.setString(1, isbn);
         ps.setInt(2, codEjemplar);
-
+        
+        // Ejecuto la sentencia y guardo el resultado
         ResultSet rs = ps.executeQuery();
+        
+        // Avanzo a la primera fila
         rs.next();
+        
+        // Si el resultado de la primera col de la consulta es mayor que 0 el ejemplar existe
         boolean existe = rs.getInt(1) > 0;
-
+        
+        // Cierro los recusos utilizados
         rs.close();
         ps.close();
+        
+        // Devuelvo resultado de la comprobación
         return existe;
     }
 
-    // Obtiene el estado actual de un ejemplar
+    // Obtiene el estado actual de un ejemplar (devuelve el estado null si el ejemplar no existe)
     public EstadoEjemplar obtenerEstadoEjemplar(String isbn, int codEjemplar) throws SQLException {
+        
+        // Consulta SQL para obtener el estado del ejemplar
         String sql = "SELECT Estado FROM EJEMPLAR WHERE ISBN = ? AND CodEjemplar = ?";
+        
+        // Se prepara la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno los valores a los parámetros 
         ps.setString(1, isbn);
         ps.setInt(2, codEjemplar);
-
+        
+        // Se ejecuta la consulta
         ResultSet rs = ps.executeQuery();
+        
+        // Variable dnd se almacenará el estado 
         EstadoEjemplar estado = null;
+        
+        // Si existe el ejemplar, se convierte el texto al enum que corresponda
         if (rs.next()) {
             estado = EstadoEjemplar.valueOf(rs.getString("Estado"));
         }
-
+        
+        // Cierro los recursos 
         rs.close();
         ps.close();
+        
+        // Devuelvo estado obtenido (si no existe el ejemplar devuelve null)
         return estado;
     }
 }

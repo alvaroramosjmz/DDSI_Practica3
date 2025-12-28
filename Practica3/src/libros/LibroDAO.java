@@ -68,16 +68,25 @@ public class LibroDAO {
         
         // Sentencia que cuenta cuantas filas hay en la tabla LIBRO con ese ISBN
         String sql = "SELECT COUNT(*) FROM LIBRO WHERE ISBN = ?";
+        
+        // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
+        
+        // Asigno el valor al parámetro
         ps.setString(1, isbn);
         
-        // Guardamos el resultado de la consulta (1 sola fila - no más pq  pq ISBN es PK )
+        // Ejecutamos la consulta y guardams el resultado de la consulta (1 sola fila - no más pq  pq ISBN es PK )
         ResultSet rs = ps.executeQuery();
-        rs.next(); // ResultSet empieza antes de la primera fila
-        boolean existe = rs.getInt(1) > 0; // getInt(1) obitne la 1ª columna de la consulta
-
+        
+        // Avanzamos a la primera fila (ResultSet empieza antes de la primera fila)
+        rs.next();
+        boolean existe = rs.getInt(1) > 0; // getInt(1) obtiene la 1ª columna de la consulta
+        
+        // Cierro los recursos utilizados
         rs.close();
         ps.close();
+        
+        // Devuelva resultado de la comprobacion (1 si existe 0 si no)
         return existe;
     }
 
@@ -111,9 +120,12 @@ public class LibroDAO {
             );
             libros.add(libro);
         }
-
+        
+        // Cierro los recursos utilizados
         rs.close();
         st.close();
+        
+        // Devuelvo la lista de todos los libros de la biblioteca
         return libros;
     }
 }
