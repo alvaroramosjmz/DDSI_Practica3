@@ -10,10 +10,13 @@ public class Main {
     public static void main(String[] args) {
         // 1. Intentar conectar
         Connection conn = DBConnection.getConnection();
+        
+        /*
         try {
             new TableManagerUsuariosDeSistema(conn).crearEstructuraUsuarios();
             conn.commit();
         } catch(Exception e) { e.printStackTrace(); }
+        */
 
         if (conn != null) {
 

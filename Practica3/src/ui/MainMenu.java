@@ -7,6 +7,7 @@ package ui;
 import database.DBConnection;
 import database.TableManagerLectores;
 import database.TableManagerEspacios;
+import database.TableManagerLibros;
 import database.TableManagerUsuariosDeSistema;
 import database.TableManagerReservas;
 import libros.LibroDAO;
@@ -102,22 +103,27 @@ public class MainMenu {
                         if (sc.nextLine().equalsIgnoreCase("S")) {
                             try {
                                 System.out.println("\n[MANTENIMIENTO BD]");
+                                
+                                // 1) Libros y ejemplares
+                                //TableManagerLibros tmLibros = new TableManagerLibros(conn);
+                                //tmLibros.crearEstructuraLibros();
 
-                                // 1) Lectores
+                                
+                                // 2) Lectores
                                 TableManagerLectores tmLectores = new TableManagerLectores(conn);
                                 tmLectores.crearEstructuraLectores();
 
-                                // 2) Espacios
+                                // 3) Espacios
                                 TableManagerEspacios tmEspacios = new TableManagerEspacios(conn);
                                 tmEspacios.crearEstructuraEspacios();
 
-                                // 3) Usuarios de Sistema
+                                // 4) Usuarios de Sistema
                                 TableManagerUsuariosDeSistema tmUsuarios = new TableManagerUsuariosDeSistema(conn);
                                 tmUsuarios.crearEstructuraUsuarios();
                                 
-                                // 4) Reservas
-                                TableManagerReservas tmReservas = new TableManagerReservas(conn);
-                                tmReservas.crearEstructuraReservas();
+                                // 5) Reservas
+                                //TableManagerReservas tmReservas = new TableManagerReservas(conn);
+                                //tmReservas.crearEstructuraReservas();
 
                                 conn.commit();
                                 System.out.println("[OK] Estructura de la base de datos creada correctamente.");

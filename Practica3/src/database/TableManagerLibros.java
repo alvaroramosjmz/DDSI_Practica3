@@ -1,95 +1,87 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package database;
 
-import java.sql.Connection;      // Conexión JDBC con la base de datos
-import java.sql.SQLException;    // Manejo de errores SQL
-import java.sql.Statement;       // Ejecución de sentencias SQL
-
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
- * TableManager del subsistema de control de libros.
+ * TableManager del subsistema de Control de Libros
  * 
- *  Se encarga de crear las tablas necesarias para:
- *    - Libros
- *    - Ejemplares
- *    - Incidencias de ejemplares
-
- * @author Usuario
+ * Crea:
+ *  - LIBRO
+ *  - EJEMPLAR
+ *  - INCIDENCIA_EJEMPLAR
+ * Incluye restricciones y triggers exigidos en la práctica.
  */
 public class TableManagerLibros {
-    // Conexión activa con la base de datos
+
     private Connection conexion;
 
-    // Constructor
     public TableManagerLibros(Connection conexion) {
         this.conexion = conexion;
     }
 
-    // Crea todas las tablas del subsistema
-    public void crearTablas() throws SQLException {
-        crearTablaLibro();
-        crearTablaEjemplar();
-        crearTablaIncidenciaEjemplar();
-    }
+    public void crearEstructuraLibros() throws SQLException {
 
-    // Crea la tabla LIBRO
-    private void crearTablaLibro() throws SQLException {
-        String sql = """
-            CREATE TABLE IF NOT EXISTS LIBRO (
-                ISBN VARCHAR(13) PRIMARY KEY,
-                Autor VARCHAR(20) NOT NULL,
-                Titulo VARCHAR(150) NOT NULL,
-                Editorial VARCHAR(20),
+        Statement st = conexion.createStatement();
+
+        // Borra todas las tablas y restricciones que pudiese haber ya creadas
+        try { st.execute("DROP TRIGGER TRG_INC_ESTADO"); } catch (SQLException e) {}
+        try { st.execute("DROP TRIGGER TRG_INC_VALIDAR"); } catch (SQLException e) {}
+        try { st.execute("DROP TABLE INCIDENCIA_EJEMPLAR CASCADE CONSTRAINTS"); } catch (SQLException e) {}
+        try { st.execute("DROP TABLE EJEMPLAR CASCADE CONSTRAINTS"); } catch (SQLException e) {}
+        try { st.execute("DROP TABLE LIBRO CASCADE CONSTRAINTS"); } catch (SQLException e) {}
+
+        // Crea tabla LIBRO
+        st.execute("""
+            CREATE TABLE LIBRO (
+                ISBN VARCHAR2(13) PRIMARY KEY,
+                Autor VARCHAR2(20) NOT NULL,
+                Titulo VARCHAR2(150) NOT NULL,
+                Editorial VARCHAR2(20),
                 FechaPublicacion DATE,
-                NumPaginas INT,
-                Edicion INT,
-                Genero VARCHAR(50)
+                NumPaginas NUMBER,
+                Edicion NUMBER,
+                Genero VARCHAR2(50),
+                CHECK (FechaPublicacion IS NULL OR FechaPublicacion <= SYSDATE)
             )
-        """;
+        """);
 
-        Statement st = conexion.createStatement();
-        st.executeUpdate(sql);
-        st.close();
-    }
+        System.out.println(">> Tabla LIBRO creada.");
 
-    // Crea la tabla EJEMPLAR
-    private void crearTablaEjemplar() throws SQLException {
-        String sql = """
-            CREATE TABLE IF NOT EXISTS EJEMPLAR (
-                ISBN VARCHAR(13),
-                CodEjemplar INT,
-                Estado VARCHAR(20) NOT NULL,
+        // Crea la tabla EJEMPLAR
+        st.execute("""
+            CREATE TABLE EJEMPLAR (
+                ISBN VARCHAR2(13),
+                CodEjemplar NUMBER,
+                Estado VARCHAR2(20) NOT NULL,
                 PRIMARY KEY (ISBN, CodEjemplar),
-                FOREIGN KEY (ISBN) REFERENCES LIBRO(ISBN)
+                FOREIGN KEY (ISBN) REFERENCES LIBRO(ISBN),
+                CHECK (Estado IN ('DISPONIBLE','NO_DISPONIBLE','DESCATALOGADO'))
             )
-        """;
+        """);
 
-        Statement st = conexion.createStatement();
-        st.executeUpdate(sql);
-        st.close();
-    }
+        System.out.println(">> Tabla EJEMPLAR creada.");
 
-    // Crea la tabla INCIDENCIA_EJEMPLAR
-    private void crearTablaIncidenciaEjemplar() throws SQLException {
-        String sql = """
-            CREATE TABLE IF NOT EXISTS INCIDENCIA_EJEMPLAR (
-                IDIncidencia INT PRIMARY KEY,
-                ISBN VARCHAR(13),
-                CodEjemplar INT,
+        // Crea la tabla INCIDENCIA_EJEMPLAR
+        st.execute("""
+            CREATE TABLE INCIDENCIA_EJEMPLAR (
+                IDIncidencia NUMBER PRIMARY KEY,
+                ISBN VARCHAR2(13),
+                CodEjemplar NUMBER,
                 FechaRegistro DATE NOT NULL,
-                Descripcion VARCHAR(500) NOT NULL,
-                Prioridad INT,
+                Descripcion VARCHAR2(500) NOT NULL,
+                Prioridad NUMBER,
                 FechaResolucion DATE,
                 FOREIGN KEY (ISBN, CodEjemplar)
-                    REFERENCES EJEMPLAR(ISBN, CodEjemplar)
+                    REFERENCES EJEMPLAR(ISBN, CodEjemplar),
+                CHECK (Prioridad IS NULL OR Prioridad BETWEEN 1 AND 5),
+                CHECK (FechaResolucion IS NULL OR FechaResolucion >= FechaRegistro)
             )
-        """;
+        """);
 
-        Statement st = conexion.createStatement();
-        st.executeUpdate(sql);
         st.close();
+        conexion.commit();
+        System.out.println(">> Subsistema LIBROS inicializado correctamente.");
     }
 }
