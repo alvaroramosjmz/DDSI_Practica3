@@ -99,4 +99,29 @@ public class SeguridadDAO {
             conn.commit();
         }
     }
+
+    // Complementario: Listar Usuarios de Sistema
+    public void listarUsuariosDeSistema() throws SQLException {
+        String sql = "SELECT * FROM USUARIOS_SISTEMA ORDER BY ID";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            System.out.println("\n--- LISTADO DE USUARIOS DE SISTEMA ---");
+            System.out.printf("%-5s %-20s %-25s %-15s %-10s %-10s\n", "ID", "NOMBRE", "EMAIL", "TELEFONO", "ES_ADMIN", "ES_MALICIOSO");
+            System.out.println("---------------------------------------------------------------------------------------");
+            
+            while (rs.next()) {
+                int id = rs.getInt("ID");
+                String nombre = rs.getString("NOMBRE");
+                String email = rs.getString("EMAIL");
+                String telefono = rs.getString("TELEFONO");
+                String esAdmin = rs.getString("ES_ADMIN");
+                String esMalicioso = rs.getString("ES_MALICIOSO");
+                
+                System.out.printf("%-5d %-20s %-25s %-15s %-10s %-10s\n", id, nombre, email, telefono, esAdmin, esMalicioso);
+            }
+        } catch (SQLException e) {
+            throw e;
+        }
+    } 
 }

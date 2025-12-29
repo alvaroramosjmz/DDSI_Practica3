@@ -4,15 +4,16 @@ import ui.MainMenu; // Importante para que encuentre el menú de los 5 puntos
 import ui.LoginMenu; // Importante para que encuentre el menú de login
 import usuarioDeSistema.UsuarioDeSistema;
 import java.sql.Connection;
+import database.TableManagerUsuariosDeSistema;;
 
 public class Main {
     public static void main(String[] args) {
         // 1. Intentar conectar
         Connection conn = DBConnection.getConnection();
-        // try {
-        //     new TableManagerUsuariosDeSistema(conn).crearEstructuraUsuarios();
-        //     conn.commit();
-        // } catch(Exception e) { e.printStackTrace(); }
+        try {
+            new TableManagerUsuariosDeSistema(conn).crearEstructuraUsuarios();
+            conn.commit();
+        } catch(Exception e) { e.printStackTrace(); }
 
         if (conn != null) {
 

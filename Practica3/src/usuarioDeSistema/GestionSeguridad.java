@@ -1,6 +1,10 @@
 package usuarioDeSistema;
 
 import database.DBConnection;
+import lectores.Lector;
+import lectores.LectorDAO;
+
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class GestionSeguridad {
@@ -8,6 +12,7 @@ public class GestionSeguridad {
 
     public static void mostrarMenu(UsuarioDeSistema usuario) {
         SeguridadDAO dao = new SeguridadDAO(DBConnection.getConnection());
+        LectorDAO lectorDAO = new LectorDAO(DBConnection.getConnection());
         int opcion = -1;
 
         while (opcion != 0) {
@@ -48,21 +53,26 @@ public class GestionSeguridad {
                     }
                     case 3 -> {
                         if (!usuario.esAdmin()) { System.out.println("Acceso Denegado."); break; }
+                        dao.listarUsuariosDeSistema();
                         System.out.print("Email del staff a bloquear/desbloquear: ");
                         String mail = sc.nextLine();
                         System.out.print("¿Es malicioso? (S/N): ");
                         boolean esMal = sc.nextLine().equalsIgnoreCase("S");
                         dao.marcarStaffMalicioso(mail, esMal);
                         System.out.println("[OK] Estado actualizado.");
+                        dao.listarUsuariosDeSistema();
                     }
                     case 4 -> {
                         // RF-5.5: Disponible para Admin y Bibliotecario
+                        // Primero, listamos los lectores para que el usuario pueda elegir
+                        listarLectores(lectorDAO);
                         System.out.print("ID del Lector: ");
                         int idLector = Integer.parseInt(sc.nextLine());
                         System.out.print("¿Marcar como malicioso (Bloquear)? (S/N): ");
                         boolean block = sc.nextLine().equalsIgnoreCase("S");
                         dao.marcarLectorMalicioso(idLector, block);
                         System.out.println("[OK] Estado del lector actualizado.");
+                        listarLectores(lectorDAO);
                     }
                     case 0 -> System.out.println("Volviendo...");
                     default -> System.out.println("Opción no válida.");
@@ -70,6 +80,18 @@ public class GestionSeguridad {
             } catch (Exception e) {
                 System.out.println("[ERROR] " + e.getMessage());
             }
+        }
+    }
+
+    public static void listarLectores(LectorDAO lectorDAO) {
+        try {
+            ArrayList<Lector> lista = lectorDAO.listarLectores();
+            System.out.println("\nID | Nombre | Apellidos | Telf | Malicioso");
+            for (Lector l : lista) {
+                System.out.println(l.getId() + " | " + l.getNombre() + " | " + l.getApellidos() + " | " + l.getTelefono() + " | " + l.getEsMalicioso());
+            }
+        } catch (Exception e) {
+            System.out.println("[ERROR] No se pudieron listar los lectores: " + e.getMessage());
         }
     }
 }
