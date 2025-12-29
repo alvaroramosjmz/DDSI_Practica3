@@ -28,64 +28,35 @@ public class IncidenciaEjemplarDAO {
     public IncidenciaEjemplarDAO(Connection conexion) {
         this.conexion = conexion;
     }
-
-    // Genera un nuevo identificador de incidencia (el identificador se obtiene 
-    // como el valor máximo existente + 1)
-    public int generarIdIncidencia() throws SQLException {
-        
-        // Consulta SQL que obtiene el mayor ID de incidencia registrado.
-        String sql = "SELECT COALESCE(MAX(IDIncidencia),0) FROM INCIDENCIA_EJEMPLAR";
-        
-        // Se prepara la sentencia SQL
-        PreparedStatement ps = conexion.prepareStatement(sql);
-        
-        // Ejecuto la consulta y guardo el resultado
-        ResultSet rs = ps.executeQuery();
-        
-        // Avanzo hasta la primera fila
-        rs.next();
-        
-        // Genro nuevo identificador (max+1)
-        int nuevoId = rs.getInt(1) + 1;
-
-        // Cierro los recursos utilizado
-        rs.close();
-        ps.close();
-        
-        // Devuelvo nuevo idIncidencia
-        return nuevoId;
-    }
-
+    
     // Inserta una nueva incidencia asociada a un ejemplar concreto
     public void insertarIncidencia(IncidenciaEjemplar incidencia) throws SQLException {
         
         // Sentencia SQL para insertar una nueva incidencia en la BD
         String sql = "INSERT INTO INCIDENCIA_EJEMPLAR "
-                   + "(IDIncidencia, ISBN, CodEjemplar, FechaRegistro, Descripcion, Prioridad, FechaResolucion) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                   + "(ISBN, CodEjemplar, Descripcion, Prioridad, FechaResolucion) "
+                   + "VALUES (?, ?, ?, ?, ?)";
         
         //Preparo la sentencia 
         PreparedStatement ps = conexion.prepareStatement(sql);
         
         // Asigno los valores a los parámetros
-        ps.setInt(1, incidencia.getIdIncidencia());
-        ps.setString(2, incidencia.getIsbn());
-        ps.setInt(3, incidencia.getCodEjemplar());
-        ps.setDate(4, new java.sql.Date(incidencia.getFechaRegistro().getTime()));
-        ps.setString(5, incidencia.getDescripcion());
+        ps.setString(1, incidencia.getIsbn());
+        ps.setInt(2, incidencia.getCodEjemplar());
+        ps.setString(3, incidencia.getDescripcion());
         
         // Asigno la prioridad si existe si no se almacena null
         if (incidencia.getPrioridad() != null) {
-            ps.setInt(6, incidencia.getPrioridad());
+            ps.setInt(4, incidencia.getPrioridad());
         } else {
-            ps.setNull(6, java.sql.Types.INTEGER);
+            ps.setNull(4, java.sql.Types.INTEGER);
         }
         
         // Asigno posible fecha de resolucion si existe si no se almacena null
         if (incidencia.getFechaResolucion() != null) {
-            ps.setDate(7, new java.sql.Date(incidencia.getFechaResolucion().getTime()));
+            ps.setDate(5, new java.sql.Date(incidencia.getFechaResolucion().getTime()));
         } else {
-            ps.setNull(7, java.sql.Types.DATE);
+            ps.setNull(5, java.sql.Types.DATE);
         }
         
         // Ejecuto la actualización
@@ -94,5 +65,31 @@ public class IncidenciaEjemplarDAO {
         // Cierro el recurso
         ps.close();
     }
-  
+    
+    //Devuelve el ultimo idIncidencia generado 
+    public int obtenerUltimoIdIncidencia() throws SQLException {
+       
+       // Sentencia SQL consulta ultimo codJemplar generado
+       String sql = "SELECT MAX(IDIncidencia) AS ultimo FROM INCIDENCIA_EJEMPLAR";
+       
+       // Preparo la sentencia
+       PreparedStatement ps = conexion.prepareStatement(sql);
+       
+       // Ejecuto la consulta y guardo el resultado
+       ResultSet rs = ps.executeQuery();
+       
+       // Avanzo hasta la primera fila
+       rs.next();
+       
+       // Obtengo el ultimo IDIncidencia
+       int id = rs.getInt("ultimo");
+       
+       // Cierro los recursos
+       rs.close();
+       ps.close();
+       
+       // Devuelvo el id
+       return id;
+    }
+
 }

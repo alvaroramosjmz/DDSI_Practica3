@@ -25,9 +25,15 @@ public class TableManagerLibros {
 
         Statement st = conexion.createStatement();
 
-        // Borra todas las tablas y restricciones que pudiese haber ya creadas
-        try { st.execute("DROP TRIGGER TRG_INC_ESTADO"); } catch (SQLException e) {}
-        try { st.execute("DROP TRIGGER TRG_INC_VALIDAR"); } catch (SQLException e) {}
+         // Borra triggers
+        try { st.execute("DROP TRIGGER TR_EJEMPLAR_ESTADO_DEFECTO"); } catch (SQLException e) {}
+        try { st.execute("DROP TRIGGER TR_EJEMPLAR_CODE_AUTO"); } catch (SQLException e) {}
+        try { st.execute("DROP TRIGGER TR_INCIDENCIA_ID_AUTO"); } catch (SQLException e) {}
+        
+        // Borra secuencia
+        try { st.execute("DROP SEQUENCE SEQ_INCIDENCIA"); } catch (SQLException e) {}
+
+        // Borra tablas
         try { st.execute("DROP TABLE INCIDENCIA_EJEMPLAR CASCADE CONSTRAINTS"); } catch (SQLException e) {}
         try { st.execute("DROP TABLE EJEMPLAR CASCADE CONSTRAINTS"); } catch (SQLException e) {}
         try { st.execute("DROP TABLE LIBRO CASCADE CONSTRAINTS"); } catch (SQLException e) {}
@@ -42,26 +48,21 @@ public class TableManagerLibros {
                 FechaPublicacion DATE,
                 NumPaginas NUMBER,
                 Edicion NUMBER,
-                Genero VARCHAR2(50),
-                CHECK (FechaPublicacion IS NULL OR FechaPublicacion <= SYSDATE)
+                Genero VARCHAR2(50)
             )
         """);
-
-        System.out.println(">> Tabla LIBRO creada.");
 
         // Crea la tabla EJEMPLAR
         st.execute("""
             CREATE TABLE EJEMPLAR (
                 ISBN VARCHAR2(13),
                 CodEjemplar NUMBER,
-                Estado VARCHAR2(20) NOT NULL,
+                Estado VARCHAR2(20),
                 PRIMARY KEY (ISBN, CodEjemplar),
                 FOREIGN KEY (ISBN) REFERENCES LIBRO(ISBN),
-                CHECK (Estado IN ('DISPONIBLE','NO_DISPONIBLE','DESCATALOGADO'))
+                 CHECK (Estado IN ('DISPONIBLE', 'NO_DISPONIBLE', 'DESCATALOGADO'))
             )
         """);
-
-        System.out.println(">> Tabla EJEMPLAR creada.");
 
         // Crea la tabla INCIDENCIA_EJEMPLAR
         st.execute("""
@@ -69,19 +70,65 @@ public class TableManagerLibros {
                 IDIncidencia NUMBER PRIMARY KEY,
                 ISBN VARCHAR2(13),
                 CodEjemplar NUMBER,
-                FechaRegistro DATE NOT NULL,
-                Descripcion VARCHAR2(500) NOT NULL,
+                FechaRegistro DATE ,
+                Descripcion VARCHAR2(500),
                 Prioridad NUMBER,
                 FechaResolucion DATE,
                 FOREIGN KEY (ISBN, CodEjemplar)
-                    REFERENCES EJEMPLAR(ISBN, CodEjemplar),
-                CHECK (Prioridad IS NULL OR Prioridad BETWEEN 1 AND 5),
-                CHECK (FechaResolucion IS NULL OR FechaResolucion >= FechaRegistro)
+                    REFERENCES EJEMPLAR(ISBN, CodEjemplar)
             )
         """);
+        
+        // Creo secuencia para los idIncidencia
+        st.execute("""
+            CREATE SEQUENCE SEQ_INCIDENCIA
+            START WITH 1
+            INCREMENT BY 1
+            NOCACHE
+        """);
+        
+        // TRIGGERS
+    
+        // Estado 'DISPONIBLE' por defecto del ejemplar
+        st.execute("""
+            CREATE OR REPLACE TRIGGER TR_EJEMPLAR_ESTADO_DEFECTO
+            BEFORE INSERT ON EJEMPLAR
+            FOR EACH ROW
+            BEGIN
+                :NEW.Estado := 'DISPONIBLE';
+            END;
+        """);
+       
+         // Generacion automatica de CodEjemplar por ISBN
+        st.execute("""
+            CREATE OR REPLACE TRIGGER TR_EJEMPLAR_CODE_AUTO
+            BEFORE INSERT ON EJEMPLAR
+            FOR EACH ROW
+            DECLARE
+                v_max NUMBER;
+            BEGIN
+                SELECT NVL(MAX(CodEjemplar), 0) + 1
+                INTO v_max
+                FROM EJEMPLAR
+                WHERE ISBN = :NEW.ISBN;
+
+                :NEW.CodEjemplar := v_max;
+            END;
+        """);
+        
+        // Generacion automatica de IDIncidencia y FechaRegistro
+        st.execute("""
+            CREATE OR REPLACE TRIGGER TR_INCIDENCIA_AUTO
+            BEFORE INSERT ON INCIDENCIA_EJEMPLAR
+            FOR EACH ROW
+            BEGIN
+                :NEW.IDIncidencia   := SEQ_INCIDENCIA.NEXTVAL;
+                :NEW.FechaRegistro := SYSDATE;
+            END;
+        """);
+
 
         st.close();
         conexion.commit();
-        System.out.println(">> Subsistema LIBROS inicializado correctamente.");
     }
 }

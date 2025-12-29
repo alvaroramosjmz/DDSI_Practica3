@@ -31,51 +31,46 @@ public class EjemplarDAO {
         this.conexion = conexion;
     }
 
-    // Genera un nuevo código de ejemplar para un libro (se obtiene como el
-    // valor MAX ya existente + 1)
-    public int generarNuevoCodigoEjemplar(String isbn) throws SQLException {
+    //Devuelve el ultimo CodEjemplar generado para un ISBN
+    public int obtenerUltimoCodEjemplar(String isbn) throws SQLException {
+       
+       // Sentencia SQL consulta ultimo codJemplar generado
+       String sql = "SELECT MAX(CodEjemplar) AS ultimo FROM EJEMPLAR WHERE ISBN = ?";
+       
+       // Preparo la sentencia
+       PreparedStatement ps = conexion.prepareStatement(sql);
+       
+       // Asigno el valor al parámetro
+       ps.setString(1, isbn);
+       
+       // Ejecuto la consulta y guardo el resultado
+       ResultSet rs = ps.executeQuery();
+       
+       // Avanzo hasta la primera fila
+       rs.next();
+       
+       // Obtengo el ultimo codEJemplar
+       int cod = rs.getInt("ultimo");
+       
+       // Cierro los recursos
+       rs.close();
+       ps.close();
+       
+       // Devuelvo el código
+       return cod;
+    }
+
+    // Inserta un nuevo ejemplar en la BD con el estado que se indique
+    public void insertarEjemplar(String isbn) throws SQLException {
         
-        // Sentencia que lee todos los CodEjemplar con un ISBN concreto y toma máximo
-        // si no hay 0 
-        String sql = "SELECT COALESCE(MAX(CodEjemplar),0) FROM EJEMPLAR WHERE ISBN = ?";
+        // Sentencia SQL DE inserción de un nuevo ejemplar
+        String sql = "INSERT INTO EJEMPLAR (ISBN) VALUES (?)";
         
         // Preparo la sentencia
         PreparedStatement ps = conexion.prepareStatement(sql);
         
         // Asigno valor al parámetro
         ps.setString(1, isbn);
-        
-        // Ejecuto la consulta
-        ResultSet rs = ps.executeQuery();
-        
-        // Avanzo a la primera fila (en este caso única) fila del resultado
-        rs.next();
-        
-         // Genero el siguiente código
-        int nuevoCodigo = rs.getInt(1) + 1;
-        
-        // Cierro los recursos usados
-        rs.close();
-        ps.close();
-        
-        // Devuelvo el nuevo código
-        return nuevoCodigo;
-    }
-
-    // Inserta un nuevo ejemplar en la BD con el estado que se indique
-    public void insertarEjemplar(String isbn, int codEjemplar, EstadoEjemplar estado) throws SQLException {
-        
-        // Sentencia SQL DE inserción de un nuevo ejemplar
-        String sql = "INSERT INTO EJEMPLAR (ISBN, CodEjemplar, Estado) VALUES (?, ?, ?)";
-        
-        // Preparo la sentencia
-        PreparedStatement ps = conexion.prepareStatement(sql);
-        
-        // Asigno valor a los parámetros
-        ps.setString(1, isbn);
-        ps.setInt(2, codEjemplar);
-        ps.setString(3, estado.name()); // el enum se guarda como texto
-        
         // Ejecuto la inserción
         ps.executeUpdate();
         

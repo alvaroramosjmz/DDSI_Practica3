@@ -33,19 +33,19 @@ public class MainMenu {
         int opcion = -1;
 
         while (opcion != 0) {
-            System.out.println("\n********** SISTEMA DE GESTIÓN BIBLIOTECARIA **********");
+            System.out.println("\n********** SISTEMA DE GESTION BIBLIOTECARIA **********");
             System.out.println("   Usuario: " + usuarioLogueado.getEmail() + (usuarioLogueado.esAdmin() ? " [ADMIN]" : ""));
             System.out.println("------------------------------------------------------");
-            System.out.println("1. GESTIÓN DE LIBROS");
-            System.out.println("2. GESTIÓN DE LECTORES");
-            System.out.println("3. GESTIÓN DE RESERVAS");
-            System.out.println("4. GESTIÓN DE ESPACIOS");
-            System.out.println("5. GESTIÓN DE SEGURIDAD");
+            System.out.println("1. GESTION DE LIBROS");
+            System.out.println("2. GESTION DE LECTORES");
+            System.out.println("3. GESTION DE RESERVAS");
+            System.out.println("4. GESTION DE ESPACIOS");
+            System.out.println("5. GESTION DE SEGURIDAD");
 
             System.out.println("------------------------------------------------------");
             System.out.println("9. INICIALIZAR/BORRAR TABLAS (Mantenimiento)");
             System.out.println("0. Salir");
-            System.out.print("Seleccione una opción: ");
+            System.out.print("Seleccione una opcion: ");
 
             try {
                 opcion = Integer.parseInt(sc.nextLine());
@@ -66,7 +66,7 @@ public class MainMenu {
 
                     
                     case 2 -> {
-                        // ENTRADA LIMPIA: Solo cargamos el menú de lectores
+                        // ENTRADA LIMPIA: Solo cargamos el menu de lectores
                         LectorDAO dao = new LectorDAO(conn);
                         GestionLectores gestion = new GestionLectores(dao);
                         gestion.mostrarMenu();
@@ -97,16 +97,16 @@ public class MainMenu {
                     }
                     
                     case 9 -> {
-                        // Esta es la opción para cuando quieras limpiar todo y empezar de cero
-                        System.out.println("¡CUIDADO! Se borrarán todos los datos de lectores.");
-                        System.out.print("¿Estás seguro? (S/N): ");
+                        // Esta es la opcion para cuando quieras limpiar todo y empezar de cero
+                        System.out.println("CUIDADO! Se borraran todos los datos.");
+                        System.out.print("Esta seguro? (S/N): ");
                         if (sc.nextLine().equalsIgnoreCase("S")) {
                             try {
                                 System.out.println("\n[MANTENIMIENTO BD]");
                                 
                                 // 1) Libros y ejemplares
-                                //TableManagerLibros tmLibros = new TableManagerLibros(conn);
-                                //tmLibros.crearEstructuraLibros();
+                                TableManagerLibros tmLibros = new TableManagerLibros(conn);
+                                tmLibros.crearEstructuraLibros();
 
                                 
                                 // 2) Lectores
@@ -122,8 +122,8 @@ public class MainMenu {
                                 tmUsuarios.crearEstructuraUsuarios();
                                 
                                 // 5) Reservas
-                                //TableManagerReservas tmReservas = new TableManagerReservas(conn);
-                                //tmReservas.crearEstructuraReservas();
+                                TableManagerReservas tmReservas = new TableManagerReservas(conn);
+                                tmReservas.crearEstructuraReservas();
 
                                 conn.commit();
                                 System.out.println("[OK] Estructura de la base de datos creada correctamente.");
@@ -139,7 +139,7 @@ public class MainMenu {
                     }
                     
                     case 0 -> System.out.println("Cerrando programa...");
-                    default -> System.out.println("Opción no válida.");
+                    default -> System.out.println("Opcion no valida.");
                 }
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());

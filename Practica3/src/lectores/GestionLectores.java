@@ -20,14 +20,14 @@ public class GestionLectores {
     public void mostrarMenu() {
         int opcion = -1;
         while (opcion != 0) {
-            System.out.println("\n--- GESTIÓN DE LECTORES ---");
+            System.out.println("\n--- GESTION DE LECTORES ---");
             System.out.println("1. Alta Lector (2.1)");
             System.out.println("2. Modificar Lector (2.2)");
             System.out.println("3. Baja Lector (2.3)");
             System.out.println("4. Buscar Lector (2.4)");
             System.out.println("5. Listar Todos (2.5)");
             System.out.println("0. Volver");
-            System.out.print("Opción: ");
+            System.out.print("Opcion: ");
             try {
                 opcion = Integer.parseInt(sc.nextLine());
                 switch (opcion) {
@@ -44,7 +44,7 @@ public class GestionLectores {
     }
 
     private void altaLector() throws SQLException {
-        System.out.println("\nAVISO LOPD: Sus datos serán guardados en la BD de la Biblioteca.");
+        System.out.println("\nAVISO LOPD: Sus datos seran guardados en la BD de la Biblioteca.");
         System.out.print("Nombre: "); String n = sc.nextLine();
         System.out.print("Apellidos: "); String a = sc.nextLine();
         System.out.print("Telf: "); String t = sc.nextLine();

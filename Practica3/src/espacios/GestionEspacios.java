@@ -34,7 +34,7 @@ public class GestionEspacios {
         int opcion;
 
         do {
-            System.out.println("\n===== SUBSISTEMA 4: GESTIÓN DE ESPACIOS =====");
+            System.out.println("\n===== SUBSISTEMA 4: GESTION DE ESPACIOS =====");
             System.out.println("1. Alta Espacio");
             System.out.println("2. Listar Espacios");
             System.out.println("3. Nueva Reserva");
@@ -43,7 +43,7 @@ public class GestionEspacios {
             System.out.println("6. Listar Reserva");
             System.out.println("0. Volver");
 
-            opcion = leerEntero("Seleccione una opción: ");
+            opcion = leerEntero("Seleccione una opcion: ");
 
             try {
                 switch (opcion) {
@@ -53,8 +53,8 @@ public class GestionEspacios {
                     case 4 -> cancelarReserva();
                     case 5 -> registrarIncidencia();
                     case 6 -> listarReservas();
-                    case 0 -> System.out.println("Volviendo al menú principal...");
-                    default -> System.out.println("Opción no válida.");
+                    case 0 -> System.out.println("Volviendo al menu principal...");
+                    default -> System.out.println("Opcion no valida.");
                 }
             } catch (SQLException e) {
                 // Mensaje útil: si viene de trigger, ya suele venir muy claro
@@ -98,17 +98,17 @@ public class GestionEspacios {
         if (tipo != null && !tipo.isBlank()) tipo = tipo.toUpperCase();
         else tipo = null;
 
-        String capStr = leerTextoOpcional("Capacidad mínima (>=0) [Enter = sin filtro]: ");
+        String capStr = leerTextoOpcional("Capacidad minima (>=0) [Enter = sin filtro]: ");
         Integer capacidadMin = null;
         if (capStr != null && !capStr.isBlank()) {
             try {
                 capacidadMin = Integer.parseInt(capStr.trim());
                 if (capacidadMin < 0) {
-                    System.out.println("Capacidad mínima inválida. Se ignorará el filtro.");
+                    System.out.println("Capacidad minima invalida. Se ignorara el filtro.");
                     capacidadMin = null;
                 }
             } catch (NumberFormatException ex) {
-                System.out.println("Capacidad mínima inválida. Se ignorará el filtro.");
+                System.out.println("Capacidad minima invalida. Se ignorara el filtro.");
             }
         }
 
@@ -132,7 +132,7 @@ public class GestionEspacios {
         System.out.println("\n--- Nueva Reserva ---");
 
         if (!avisoDatosPersonales()) {
-            System.out.println("Operación cancelada por el usuario.");
+            System.out.println("Operacion cancelada por el usuario.");
             return;
         }
 
@@ -153,7 +153,7 @@ public class GestionEspacios {
         System.out.println("\n--- Cancelar Reserva ---");
 
         if (!avisoDatosPersonales()) {
-            System.out.println("Operación cancelada por el usuario.");
+            System.out.println("Operacion cancelada por el usuario.");
             return;
         }
 
@@ -170,17 +170,17 @@ public class GestionEspacios {
         System.out.println("\n--- Registrar Incidencia ---");
 
         if (!avisoDatosPersonales()) {
-            System.out.println("Operación cancelada por el usuario.");
+            System.out.println("Operacion cancelada por el usuario.");
             return;
         }
 
         int espacioId = leerEnteroMin("Espacio ID: ", 1);
-        String descripcion = leerTextoNoVacioMax("Descripción (máx 500): ", 500);
+        String descripcion = leerTextoNoVacioMax("Descripcion (máx 500): ", 500);
 
         Timestamp inicioInc = leerTimestamp("Inicio incidencia (yyyy-MM-dd HH:mm): ");
         Timestamp finInc = leerTimestamp("Fin incidencia    (yyyy-MM-dd HH:mm): ");
 
-        String accion = leerAccionReserva("Acción sobre reservas (MANTENER / CANCELAR_Y_AVISAR) [MANTENER]: ", "MANTENER");
+        String accion = leerAccionReserva("Accion sobre reservas (MANTENER / CANCELAR_Y_AVISAR) [MANTENER]: ", "MANTENER");
 
         IncidenciaEspacio inc = new IncidenciaEspacio(
                 0,
@@ -202,7 +202,7 @@ public class GestionEspacios {
         System.out.println("\n--- Listar Reservas ---");
 
         if (!avisoDatosPersonales()) {
-            System.out.println("Operación cancelada por el usuario.");
+            System.out.println("Operacion cancelada por el usuario.");
             return;
         }
 
@@ -213,7 +213,7 @@ public class GestionEspacios {
                 espacioId = Integer.parseInt(espStr.trim());
                 if (espacioId <= 0) espacioId = null;
             } catch (NumberFormatException e) {
-                System.out.println("Espacio ID inválido. Se ignorará el filtro.");
+                System.out.println("Espacio ID invalido. Se ignorara el filtro.");
             }
         }
 
@@ -224,7 +224,7 @@ public class GestionEspacios {
         if (iniStr != null && !iniStr.isBlank()) {
             inicio = parseTimestamp(iniStr);
             if (inicio == null) {
-                System.out.println("Formato de fecha inválido. Se ignorará filtro de inicio.");
+                System.out.println("Formato de fecha invalido. Se ignorara filtro de inicio.");
             }
         }
 
@@ -232,12 +232,12 @@ public class GestionEspacios {
         if (finStr != null && !finStr.isBlank()) {
             fin = parseTimestamp(finStr);
             if (fin == null) {
-                System.out.println("Formato de fecha inválido. Se ignorará filtro de fin.");
+                System.out.println("Formato de fecha invalido. Se ignorara filtro de fin.");
             }
         }
 
         if (inicio != null && fin != null && inicio.after(fin)) {
-            System.out.println("Rango inválido: INICIO no puede ser mayor que FIN. Se ignora el rango.");
+            System.out.println("Rango invalido: INICIO no puede ser mayor que FIN. Se ignora el rango.");
             inicio = null;
             fin = null;
         }
@@ -270,7 +270,7 @@ public class GestionEspacios {
             try {
                 return Integer.parseInt(s.trim());
             } catch (NumberFormatException e) {
-                System.out.println("Debe introducir un número entero.");
+                System.out.println("Debe introducir un numero entero.");
             }
         }
     }
@@ -288,7 +288,7 @@ public class GestionEspacios {
             System.out.print(msg);
             String s = sc.nextLine();
             if (s != null && !s.trim().isEmpty()) return s.trim();
-            System.out.println("No puede estar vacío.");
+            System.out.println("No puede estar vacio.");
         }
     }
 
@@ -296,7 +296,7 @@ public class GestionEspacios {
         while (true) {
             String s = leerTextoNoVacio(msg);
             if (s.length() <= max) return s;
-            System.out.println("Demasiado largo (máx " + max + " caracteres).");
+            System.out.println("Demasiado largo (max " + max + " caracteres).");
         }
     }
 
@@ -311,7 +311,7 @@ public class GestionEspacios {
             String s = sc.nextLine();
             Timestamp ts = parseTimestamp(s);
             if (ts != null) return ts;
-            System.out.println("Formato inválido. Use: yyyy-MM-dd HH:mm (ej: 2025-12-24 18:30)");
+            System.out.println("Formato invalido. Use: yyyy-MM-dd HH:mm (ej: 2025-12-24 18:30)");
         }
     }
 
@@ -331,7 +331,7 @@ public class GestionEspacios {
             if (s == null || s.trim().isEmpty()) return porDefecto;
             s = s.trim().toUpperCase();
             if (s.equals("BLOQUEADO") || s.equals("NO BLOQUEADO")) return s;
-            System.out.println("Estado inválido. Valores válidos: BLOQUEADO / NO BLOQUEADO");
+            System.out.println("Estado invalido. Valores validos: BLOQUEADO / NO BLOQUEADO");
         }
     }
 
@@ -342,7 +342,7 @@ public class GestionEspacios {
             if (s == null || s.trim().isEmpty()) return porDefecto;
             s = s.trim().toUpperCase();
             if (s.equals("MANTENER") || s.equals("CANCELAR_Y_AVISAR")) return s;
-            System.out.println("Acción inválida. Valores válidos: MANTENER / CANCELAR_Y_AVISAR");
+            System.out.println("Accion invalida. Valores validos: MANTENER / CANCELAR_Y_AVISAR");
         }
     }
 
@@ -351,7 +351,7 @@ public class GestionEspacios {
        ===================================================== */
     private boolean avisoDatosPersonales() {
         System.out.println("\n[AVISO DE PROTECCIÓN DE DATOS]");
-        System.out.println("Esta operación puede tratar datos personales (UsuarioID asociado a un lector).");
+        System.out.println("Esta operacion puede tratar datos personales (UsuarioID asociado a un lector).");
         System.out.println("Finalidad: gestión de espacios, reservas e incidencias de la biblioteca.");
         System.out.println("Derechos: acceso, rectificación y supresión según normativa vigente.");
         System.out.print("¿Acepta continuar? (S/N): ");

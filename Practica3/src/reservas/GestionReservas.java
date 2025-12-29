@@ -29,7 +29,7 @@ public class GestionReservas {
             System.out.println("4. Devolver Libro ");
             System.out.println("5. Historial de Usuario ");
             System.out.println("0. Volver");
-            System.out.print("Seleccione una opción: ");
+            System.out.print("Seleccione una opcion: ");
 
             try {
                 String input = sc.nextLine(); //leemos la linea como texto y luego lo pasamos a numero
@@ -46,7 +46,7 @@ public class GestionReservas {
                     case 4 -> devolverLibro();
                     case 5 -> { if (avisoDatosPersonales()) historialUsuario(); }
                     case 0 -> {}
-                    default -> System.out.println("Opción no válida.");
+                    default -> System.out.println("Opcion no valida.");
                 }
             } catch (SQLException ex) {
                 System.out.println("ERROR SQL: " + ex.getMessage());
@@ -66,7 +66,7 @@ public class GestionReservas {
         try {
             int uid = Integer.parseInt(sc.nextLine());
             System.out.println(dao.realizarReserva(isbn, uid));
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
+        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
     private void cancelarReserva() throws SQLException {
@@ -76,7 +76,7 @@ public class GestionReservas {
             System.out.print("Introduzca ISBN a cancelar: ");
             String isbn = sc.nextLine();
             System.out.println(dao.cancelarReserva(uid, isbn));
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
+        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
     private void comprobarReserva() throws SQLException {
@@ -86,11 +86,11 @@ public class GestionReservas {
             System.out.print("Introduzca ISBN a retirar: ");
             String isbn = sc.nextLine();
             if (dao.tieneReservaActiva(uid, isbn)) {
-                System.out.println(">> OK: Reserva válida. Puede entregar el libro.");
+                System.out.println(">> OK: Reserva valida. Puede entregar el libro.");
             } else {
                 System.out.println(">> DENEGADO: No tiene reserva activa.");
             }
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
+        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
     private void devolverLibro() throws SQLException {
@@ -100,7 +100,7 @@ public class GestionReservas {
             System.out.print("Introduzca ISBN devuelto: ");
             String isbn = sc.nextLine();
             System.out.println(dao.devolverLibro(uid, isbn));
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
+        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
     private void historialUsuario() throws SQLException {
@@ -118,12 +118,12 @@ public class GestionReservas {
                                        " | Ejemplar: " + r.getCodEjemplar() + " | Estado: " + estado);
                 }
             }
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numérico."); }
+        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
     //politica de privacidad
     private boolean avisoDatosPersonales() {
-        System.out.println("\n[AVISO LEGAL] Operación con datos personales.");
+        System.out.println("\n[AVISO LEGAL] Operacion con datos personales.");
         System.out.print("¿Consiente el tratamiento? (S/N): ");
         String s = sc.nextLine();
         return s != null && s.trim().equalsIgnoreCase("S"); //compruebo que s no sea nulo y elimino espacios con trim, comparo para ver si es verdadero ya sea S o s

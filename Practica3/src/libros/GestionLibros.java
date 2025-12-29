@@ -88,12 +88,17 @@ public class GestionLibros {
                 return;
             }
             else{
-                 // Si el libro ya existe 
-                if (libroDAO.existeLibro(isbn)) {
-                    System.out.println("El libro ya existe.");
+                if(isbn.length()==13){
+                    // Si el libro ya existe 
+                   if (libroDAO.existeLibro(isbn)) {
+                       System.out.println("El libro ya existe.");
+                   }
+                   else{
+                       sigue = false;
+                   }
                 }
                 else{
-                    sigue = false;
+                    System.out.println("El ISBN debe tener exactamente 13 caracteres.");
                 }
             }
            
@@ -158,20 +163,58 @@ public class GestionLibros {
                     System.out.println("Formato incorrecto. Use dd/MM/yyyy.");
                 }
             }
-}       
-        // Número de páginas opcional 
-        System.out.print("Numero paginas (opcional): ");
-        String np = sc.nextLine();
-        // Si no se introduce nada NULL si no se convierte a Integer
-        Integer pags = null; 
-        if (!np.isEmpty()) pags = Integer.valueOf(np);
+        }
+    
+    
+        // Número de páginas opcional
+        // Si no se introduce nada NULL si no se convierte a Integer y si es negativo se pide de nuevo
+        Integer pags = null;
+        boolean num_pag_valido = false;
+            
+        while (!num_pag_valido){
+            System.out.print("Numero paginas (>0 - opcional): ");      
+            String np = sc.nextLine();
+            
+            if (!np.isEmpty()){
+                
+                pags = Integer.valueOf(np);
+
+                if( pags<=0 ){
+                   System.out.println("El numero de paginas tiene que ser >0.");
+                }
+                else{
+                    num_pag_valido = true;
+                }
+            }
+            else{
+                num_pag_valido = true;
+            }
+        }
+        
         
         // Edición opcional 
-        System.out.print("Edicion (opcional): ");
-        String ed = sc.nextLine();
-        // Si no se introduce nada NULL si no se convierte a Integer
-        Integer edicion = null; 
-        if (!ed.isEmpty()) edicion = Integer.valueOf(ed);
+        Integer edicion = null;
+        boolean edicion_valido = false;
+            
+        while (!edicion_valido){
+            System.out.print("Edicion (> 0 - opcional): ");      
+            String ed = sc.nextLine();
+            
+            if (!ed.isEmpty()){
+                
+                edicion = Integer.valueOf(ed);
+
+                if( edicion<=0 ){
+                   System.out.println("El numero de edicion tiene que ser > 0.");
+                }
+                else{
+                    edicion_valido = true;
+                }
+            }
+            else{
+                edicion_valido = true;
+            }
+        }
         
         // Género opcional
         System.out.print("Genero(opcional): "); 
@@ -219,13 +262,12 @@ public class GestionLibros {
         }
         
         // Genero nuevo código de ejemplar secuencialmente
-        int nuevoCodigo = ejemplarDAO.generarNuevoCodigoEjemplar(isbn);
         
-        // Inserto el ejemplar en estado DISPONIBLE
-        ejemplarDAO.insertarEjemplar(isbn, nuevoCodigo, EstadoEjemplar.DISPONIBLE);
+        // Inserto el ejemplar en estado DISPONIBLE (SE HACE POR TRIGGER)
+        ejemplarDAO.insertarEjemplar(isbn);
 
         // Mensaje de confirmación
-        System.out.println("Ejemplar creado con codigo: " + nuevoCodigo);
+        System.out.println("Ejemplar creado con codigo: " + ejemplarDAO.obtenerUltimoCodEjemplar(isbn) );
     }
 
     // RF-1.3 Baja de ejemplar (baja lógica)
@@ -238,7 +280,7 @@ public class GestionLibros {
         String isbn = sc.nextLine();
 
         // Se solicita el código del ejemplar concreto
-        System.out.print("Código del ejemplar: ");
+        System.out.print("Codigo del ejemplar: ");
         int cod = Integer.parseInt(sc.nextLine());
 
         // Comprobamos que el ejemplar exista
@@ -251,16 +293,24 @@ public class GestionLibros {
         EstadoEjemplar estado = ejemplarDAO.obtenerEstadoEjemplar(isbn, cod);
 
         // Cambio de estado → baja lógica
-        ejemplarDAO.cambiarEstadoEjemplar(isbn, cod, EstadoEjemplar.DESCATALOGADO);
+        if (estado == EstadoEjemplar.NO_DISPONIBLE){
+            System.out.println("Ejemplar no se dio de baja porque NO ESTA DISPONIBLE.");
+        }
+        else{
+            ejemplarDAO.cambiarEstadoEjemplar(isbn, cod, EstadoEjemplar.DESCATALOGADO);
 
-        // Confirmación al usuario
-        System.out.println("Ejemplar dado de baja correctamente.");
+            // Confirmación al usuario
+            System.out.println("Ejemplar dado de baja correctamente.");
+        }
+            
     }
 
     // RF-1.4 Registrar incidencia
     private void registrarIncidencia() throws SQLException {
         
         System.out.println("\n--- REGISTRAR INCIDENCIA ---");
+        
+        System.out.println("\n\nAVISO: No introduzca datos personales en la descripcion de la incidencia.\n\n");
 
         System.out.print("ISBN: "); String isbn = sc.nextLine();
         System.out.print("Codigo ejemplar: "); int cod = Integer.parseInt(sc.nextLine());
@@ -275,21 +325,75 @@ public class GestionLibros {
             System.out.println("No se puede registrar incidencia sobre un ejemplar descatalogado.");
             return;
         }
+        
+        boolean descripcion_valida = false;
+        String desc = "";
+        
+        while(!descripcion_valida){
+            System.out.print("Descripcion (500 caracteres max. - opcional): "); 
+            desc = sc.nextLine();
+        
+            if (desc.length()>500){
+                System.out.println("La descripcion no puede superar los 500 caracteres");
+            }
+            else{
+                descripcion_valida = true;
+            }
+        }
+        
+        boolean prior_valida = false;
+        Integer prioridad = null;
+        
+        while(!prior_valida){
+            System.out.print("Prioridad (1-5, opcional): "); 
+            String pr = sc.nextLine();
+            if (pr.isEmpty()){
+                prior_valida = true;
+            }
+            else{
+                if (Integer.parseInt(pr)<1 || Integer.parseInt(pr)>5){
+                    System.out.println("La prioridad debe eser un valor entero entre 1 y 5");
+                }
+                else{
+                    prior_valida = true;
+                    prioridad = Integer.valueOf(pr);
+                }
+            }
+        }
+        // Fecha de publicación opcional y con validación
+        Date fechaResolucion = null;
+        boolean fechaValida = false;
 
-        int idInc = incidenciaDAO.generarIdIncidencia();
-        System.out.print("Descripcion: "); String desc = sc.nextLine();
-        System.out.print("Prioridad (1-5, opcional): "); String p = sc.nextLine();
+        while (!fechaValida) {
+            System.out.print("Fecha resolucion (dd/MM/yyyy - opcional): ");
+            String fp = sc.nextLine();
 
-        Integer prioridad = p.isEmpty() ? null : Integer.parseInt(p);
+            // Si pulsa ENTER → fecha opcional
+            if (fp.isEmpty()) {
+                fechaResolucion = null;
+                fechaValida = true;
+            } else {
+                try {
+                    // Formato obligatorio de la fecha
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    sdf.setLenient(false); // evita fechas imposibles
+                    
+                    // Convertir texto a Date
+                    fechaResolucion = sdf.parse(fp);
+                    fechaValida = true;
+                } catch (Exception e) {
+                    System.out.println("Formato incorrecto. Use dd/MM/yyyy.");
+                }
+            }
+        }
 
         IncidenciaEjemplar inc = new IncidenciaEjemplar(
-                idInc, isbn, cod, new Date(), desc, prioridad, null
-        );
+                0,isbn, cod, new Date(), desc, prioridad, fechaResolucion);
 
         incidenciaDAO.insertarIncidencia(inc);
         ejemplarDAO.cambiarEstadoEjemplar(isbn, cod, EstadoEjemplar.NO_DISPONIBLE);
 
-        System.out.println("Incidencia registrada con ID: " + idInc);
+        System.out.println("Incidencia registrada con ID: " + incidenciaDAO.obtenerUltimoIdIncidencia());
     }
 
     // RF-1.5 Listar libros con todos sus datos y ejemplares
@@ -303,14 +407,14 @@ public class GestionLibros {
         // Cabecera de la tabla
         System.out.printf(
             "%-15s %-30s %-20s %-8s %-12s %-8s %-15s %-10s %-8s %-15s%n",
-            "ISBN", "TÍTULO", "AUTOR",
+            "ISBN", "TITULO", "AUTOR",
             "TOTAL", "DISPONIBLES",
-            "EDIC.", "EDITORIAL", "FECHA", "PÁGS", "GÉNERO"
+            "EDIC.", "EDITORIAL", "FECHA", "PAGS", "GENERO"
         );
 
         // Línea separadora
         System.out.println(
-            "--------------------------------------------------------------------------------------------------------------------------------"
+            "-------------------------------------------------------------------------------------------------------------------------------------------------"
         );
 
         // Recorremos todos los libros
