@@ -13,7 +13,8 @@ public class UsuarioDeSistemaDAO {
     }
 
     public UsuarioDeSistema login(String email) throws SQLException {
-        String sql = "SELECT ID, NOMBRE, EMAIL, TELEFONO, ES_ADMIN, ES_MALICIOSO FROM USUARIOS_SISTEMA WHERE EMAIL = ?";
+        // String sql = "SELECT ID, NOMBRE, EMAIL, TELEFONO, ES_ADMIN, ES_MALICIOSO FROM USUARIOS_SISTEMA WHERE EMAIL = ?";
+        String sql = "SELECT ID, NOMBRE, EMAIL, TELEFONO, ES_ADMIN, ES_MALICIOSO FROM USUARIOS_SISTEMA WHERE ID = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, email);
