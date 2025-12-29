@@ -294,7 +294,8 @@ public class GestionLibros {
 
         // Cambio de estado → baja lógica
         if (estado == EstadoEjemplar.NO_DISPONIBLE){
-            System.out.println("Ejemplar no se dio de baja porque NO ESTA DISPONIBLE.");
+            System.out.println("Ejemplar no se dio de baja porque su estado es NO_DISPONIBLE.");
+            return;
         }
         else{
             ejemplarDAO.cambiarEstadoEjemplar(isbn, cod, EstadoEjemplar.DESCATALOGADO);
