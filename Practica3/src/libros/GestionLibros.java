@@ -401,9 +401,21 @@ public class GestionLibros {
     private void listarLibros() throws SQLException {
 
         System.out.println("\n--- LISTADO DE LIBROS ---\n");
+        
+        // Obtenemos todos los libros almacenados en la BD con los filtrosque se pidan
+        System.out.print("Filtrar por ISBN (enter para omitir): ");
+        String isbn = sc.nextLine();
 
-        // Obtenemos todos los libros almacenados en la BD
-        List<Libro> libros = libroDAO.listarLibros();
+        System.out.print("Filtrar por Autor (enter para omitir): ");
+        String autor = sc.nextLine();
+
+        System.out.print("Filtrar por Titulo (enter para omitir): ");
+        String titulo = sc.nextLine();
+
+        System.out.print("Filtrar por Genero (enter para omitir): ");
+        String gen = sc.nextLine();
+
+        List<Libro> libros = libroDAO.listarLibros(isbn, autor, titulo, gen);
 
         // Cabecera de la tabla
         System.out.printf(

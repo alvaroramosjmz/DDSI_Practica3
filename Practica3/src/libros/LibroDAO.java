@@ -116,21 +116,56 @@ public class LibroDAO {
         return existe;
     }
 
-    //Obtiene la lista completa de libros registrados en el sistema.
-    public List<Libro> listarLibros() throws SQLException {
-        
-        // Lista vacía que se irá rellenando con los libros recuperados de la BD
+    // Obtiene la lista de libros registrados en el sistema aplicando filtros opcionales
+    public List<Libro> listarLibros(String isbn,String autor,String titulo,String genero) throws SQLException {
+
+        // Lista vacia que se ira rellenando con los libros recuperados de la BD
         List<Libro> libros = new ArrayList<>();
-        
-        // sentencia que lista todos las filas de la tabla LIBRO
-        String sql = "SELECT * FROM LIBRO";
-        
-        // Usamos statement pq no hay parámetros aun por determinar
-        Statement st = conexion.createStatement();
-        
-        // Ejecuta la sentencia y guarda el resultado de la consulta   
-        ResultSet rs = st.executeQuery(sql);
-        
+
+        // Construimos dinamicamente la sentencia SQL en funcion de los filtros indicados
+        StringBuilder sql = new StringBuilder(
+            "SELECT ISBN, Autor, Titulo, Editorial, FechaPublicacion, NumPaginas, Edicion, Genero " +
+            "FROM LIBRO WHERE 1=1"
+        );
+
+        // Lista auxiliar para almacenar los valores de los parametros de la consulta
+        List<Object> parametros = new ArrayList<>();
+
+        // Si se indica ISBN, se anade el filtro correspondiente
+        if (isbn != null && !isbn.isBlank()) {
+            sql.append(" AND ISBN = ?");
+            parametros.add(isbn);
+        }
+
+        // Si se indica autor, se filtra por coincidencia parcial
+        if (autor != null && !autor.isBlank()) {
+            sql.append(" AND Autor LIKE ?");
+            parametros.add("%" + autor + "%");
+        }
+
+        // Si se indica titulo, se filtra por coincidencia parcial
+        if (titulo != null && !titulo.isBlank()) {
+            sql.append(" AND Titulo LIKE ?");
+            parametros.add("%" + titulo + "%");
+        }
+
+        // Si se indica genero, se filtra por coincidencia parcial
+        if (genero != null && !genero.isBlank()) {
+            sql.append(" AND Genero LIKE ?");
+            parametros.add("%" + genero + "%");
+        }
+
+        // Preparo la sentencia SQL final usando PreparedStatement
+        PreparedStatement ps = conexion.prepareStatement(sql.toString());
+
+        // Asigno los valores a los parametros de la consulta en el orden correspondiente
+        for (int i = 0; i < parametros.size(); i++) {
+            ps.setObject(i + 1, parametros.get(i));
+        }
+
+        // Ejecuto la consulta y guardo el resultado
+        ResultSet rs = ps.executeQuery();
+
         // Recorremos todas las filas del resultado de la consulta
         while (rs.next()) {
             // Creamos un objeto tipo Libro con los datos recuperados (cada col SQL --> atributo Java)
@@ -146,12 +181,13 @@ public class LibroDAO {
             );
             libros.add(libro);
         }
-        
+
         // Cierro los recursos utilizados
         rs.close();
-        st.close();
-        
-        // Devuelvo la lista de todos los libros de la biblioteca
+        ps.close();
+
+        // Devuelvo la lista de libros que cumplen los criterios indicados
         return libros;
     }
+
 }
