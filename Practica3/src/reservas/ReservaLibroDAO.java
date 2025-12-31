@@ -17,6 +17,18 @@ public class ReservaLibroDAO {
     public ReservaLibroDAO(Connection connection) {
         this.connection = connection;
     }
+    
+    //METODO AUXILIAR, VERIFICAR SI EXISTE EL USUARIO 
+    private boolean existeUsuario(int usuarioId) throws SQLException {
+        String sql = "SELECT 1 FROM LECTORES WHERE USUARIO_ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, usuarioId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }
+    }
+    
+    
     //////////////////////////////
     // RF-3.1: REALIZAR RESERVA//
     /////////////////////////////
@@ -28,14 +40,36 @@ public class ReservaLibroDAO {
         PreparedStatement psInsertar = null;
         PreparedStatement psUpdateEjemplar = null;
         PreparedStatement psCheckEstado = null;
+        PreparedStatement psCheckUsuario = null;
         //resultados de SELECT
         ResultSet rs = null;
+        ResultSet rsUsuario = null;
 
         try {
             //desactivamos el commit automatico, si algo falla hacemos rollback
             connection.setAutoCommit(false); 
+            
+            //Comprobamos si el usuario es malicioso
+            String sqlUsuario = "SELECT ES_MALICIOSO FROM LECTORES WHERE USUARIO_ID = ?";
+            psCheckUsuario = connection.prepareStatement(sqlUsuario);
+            psCheckUsuario.setInt(1, usuarioId);
+            rsUsuario = psCheckUsuario.executeQuery();
 
-            // 1. Intentar buscar el primer ejemplar que este DISPONIBLE de ese ISBN 
+            if (rsUsuario.next()) {
+                String esMalicioso = rsUsuario.getString("ES_MALICIOSO");
+                // Si en la BD pone 'S', es que es malicioso
+                if ("S".equals(esMalicioso)) {
+                    // Cancelamos todo y devolvemos error
+                    connection.rollback();
+                    return "ERROR: El usuario está marcado como MALICIOSO y no puede reservar libros.";
+                }
+            } else {
+                // Si no entra en el if, es que el usuario no existe en la BD
+                connection.rollback();
+                return "ERROR: El usuario con ID " + usuarioId + " no existe.";
+            }
+
+            // Intentar buscar el primer ejemplar que este DISPONIBLE de ese ISBN 
             String sqlBuscar = "SELECT CodEjemplar FROM EJEMPLAR WHERE ISBN = ? AND Estado = ? FETCH FIRST 1 ROWS ONLY";
             psBuscar = connection.prepareStatement(sqlBuscar); //buscamos en la base de datos
             psBuscar.setString(1, isbn); //buscamos el ejemplar con el isbn que se le pasó
@@ -80,11 +114,24 @@ public class ReservaLibroDAO {
                 boolean existeLibro = false; //saber si existe el libro o no
                     
                 //voy comprobando la lista ejemplar a ejemplar de ese isbn
+
                 while(rsEstado.next()){
-                    existeLibro = true; //si hay ejemplares es pq el libro existe
-                    String estado = rsEstado.getString("Estado"); //leo el estado del ejemplar actual
-                    if (estado.equals(EstadoEjemplar.DESCATALOGADO.name())) hayDescatalogados = true; //si esta descatalogado, lo marco
-                    if (estado.equals(EstadoEjemplar.NO_DISPONIBLE.name())) hayOcupados = true; //si esta no disponible, lo marco
+                    existeLibro = true;
+                    String estado = rsEstado.getString("Estado");
+
+                    // PROTECCIÓN CONTRA NULOS Y ESPACIOS
+                    if (estado != null) {
+                        estado = estado.trim(); // 1. Quitamos espacios sobrantes "DESCATALOGADO " -> "DESCATALOGADO"
+
+                        // 2. Comparamos ignorando mayúsculas/minúsculas
+                        if (estado.equalsIgnoreCase(EstadoEjemplar.DESCATALOGADO.name())) {
+                            hayDescatalogados = true;
+                        }
+
+                        if (estado.equalsIgnoreCase(EstadoEjemplar.NO_DISPONIBLE.name())) {
+                            hayOcupados = true;
+                        }
+                    }
                 }
                 rsEstado.close();
                 
@@ -112,18 +159,253 @@ public class ReservaLibroDAO {
         return mensaje;
     }
     
-    //////////////////////////////
-    //  RF-3.2: CANCELAR RESERVA//
-    /////////////////////////////
+    ////////////////////////////////
+    // RF-3.2: CANCELAR RESERVA  //
+    ///////////////////////////////
     public String cancelarReserva(int usuarioId, String isbn) throws SQLException {
-        return finalizarReservaGenerico(usuarioId, isbn, "Reserva cancelada");
+        
+        String mensaje = "";
+        PreparedStatement psCheck = null;
+        PreparedStatement psUpdateReserva = null;
+        PreparedStatement psUpdateEjemplar = null;
+        ResultSet rs = null;
+
+        try {
+            connection.setAutoCommit(false);
+            
+            //comprobamos si el usuario existe
+            if (!existeUsuario(usuarioId)) {
+                connection.rollback();
+                return "ERROR: El usuario con ID " + usuarioId + " no existe.";
+            }
+
+            String sqlCheck = "SELECT RESERVA_VALIDA, COD_EJEMPLAR, ES_RETIRADO FROM RESERVAS_LIBROS " +
+                              "WHERE USUARIO_ID = ? AND ISBN = ? " +
+                              "ORDER BY FECHA_RESERVA DESC FETCH FIRST 1 ROWS ONLY";
+
+            psCheck = connection.prepareStatement(sqlCheck);
+            psCheck.setInt(1, usuarioId);
+            psCheck.setString(2, isbn);
+            rs = psCheck.executeQuery();
+
+            if (rs.next()) {
+                String esValida = rs.getString("RESERVA_VALIDA");
+                int codEjemplar = rs.getInt("COD_EJEMPLAR");
+                String esRetirado = rs.getString("ES_RETIRADO"); 
+
+                // Ya estaba finalizada la reserva
+                if ("F".equals(esValida)) {
+                    connection.rollback();
+                    return "ERROR: No se puede cancelar. La reserva ya estaba FINALIZADA.";
+                }
+
+                // Está activa ('T'), pero lo ha retirado
+                if ("S".equals(esRetirado)) {
+                    connection.rollback();
+                    return "ERROR: No puede CANCELAR un libro que ya ha RETIRADO. Debe usar la opción 'Devolver Libro'.";
+                }
+
+                // La reserva es valida y no se ha retirado, podemos cancelarla
+                
+                // 1. Ponemos la reserva a 'F' (False)
+                String sqlUpdateRes = "UPDATE RESERVAS_LIBROS SET RESERVA_VALIDA = 'F' " +
+                                      "WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ?";
+                psUpdateReserva = connection.prepareStatement(sqlUpdateRes);
+                psUpdateReserva.setInt(1, usuarioId);
+                psUpdateReserva.setString(2, isbn);
+                psUpdateReserva.setInt(3, codEjemplar);
+                psUpdateReserva.executeUpdate();
+
+                // 2. Liberamos el ejemplar (lo ponemos DISPONIBLE)
+                String sqlUpdateEjem = "UPDATE EJEMPLAR SET Estado = ? WHERE ISBN = ? AND CodEjemplar = ?";
+                psUpdateEjemplar = connection.prepareStatement(sqlUpdateEjem);
+                psUpdateEjemplar.setString(1, EstadoEjemplar.DISPONIBLE.name());
+                psUpdateEjemplar.setString(2, isbn);
+                psUpdateEjemplar.setInt(3, codEjemplar);
+                psUpdateEjemplar.executeUpdate();
+
+                connection.commit();
+                mensaje = "ÉXITO: Reserva cancelada correctamente. El ejemplar " + codEjemplar + " vuelve a estar libre.";
+
+            } else {
+                connection.rollback();
+                return "ERROR: Este usuario no tiene reservas registradas para este libro.";
+            }
+        } catch (SQLException e) {
+                if (connection != null) connection.rollback();
+                throw e;
+            } finally {
+                if (connection != null) connection.setAutoCommit(true);
+                if (rs != null) rs.close();
+                if (psCheck != null) psCheck.close();
+                if (psUpdateReserva != null) psUpdateReserva.close();
+                if (psUpdateEjemplar != null) psUpdateEjemplar.close();
+            }
+            return mensaje;
+            
     }
+
     
     //////////////////////////////
-    //  RF-3.4: DEVOLVER LIBRO//
+    //RF-3.3: RETIRAR LIBRO     //
     /////////////////////////////
-    public String devolverLibro(int usuarioId, String isbn) throws SQLException {
-        return finalizarReservaGenerico(usuarioId, isbn, "Libro devuelto");
+    
+    public String confirmarRetirada(int usuarioId, String isbn, int codEjemplar) throws SQLException {
+        String mensaje = "";
+        PreparedStatement psCheck = null;
+        PreparedStatement psUpdate = null;
+        ResultSet rs = null;
+        
+        try {
+            connection.setAutoCommit(false);
+
+            //comprobamos si el usuario existe
+            if (!existeUsuario(usuarioId)) {
+                connection.rollback();
+                return "ERROR: El usuario con ID " + usuarioId + " no existe en el sistema.";
+            }
+
+            // Ahora buscamos tambien por COD_EJEMPLAR
+            String sqlCheck = "SELECT RESERVA_VALIDA, ES_RETIRADO FROM RESERVAS_LIBROS " +
+                              "WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ?";
+            
+            psCheck = connection.prepareStatement(sqlCheck);
+            psCheck.setInt(1, usuarioId);
+            psCheck.setString(2, isbn);
+            psCheck.setInt(3, codEjemplar); // Buscamos el ejemplar exacto
+            
+            rs = psCheck.executeQuery();
+
+            if (rs.next()) {
+                String esValida = rs.getString("RESERVA_VALIDA");
+                String esRetirado = rs.getString("ES_RETIRADO");
+
+                // CASO A: Reserva finalizada/cancelada
+                if ("F".equals(esValida)) {
+                    connection.rollback();
+                    return "ERROR: No se puede retirar. La reserva de este ejemplar consta como FINALIZADA.";
+                }
+                
+                // CASO B: Ya retirado
+                if ("S".equals(esRetirado)) {
+                     connection.rollback();
+                     return "ERROR: Este ejemplar concreto YA HA SIDO RETIRADO previamente.";
+                }
+
+                // CASO C: Todo correcto. HACEMOS EL UPDATE.
+                String sqlUpdate = "UPDATE RESERVAS_LIBROS SET ES_RETIRADO = 'S' " +
+                                   "WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ?";
+                
+                psUpdate = connection.prepareStatement(sqlUpdate);
+                psUpdate.setInt(1, usuarioId);
+                psUpdate.setString(2, isbn);
+                psUpdate.setInt(3, codEjemplar);
+                psUpdate.executeUpdate();
+                
+                connection.commit();
+                mensaje = "ÉXITO: Libro retirado. Ejemplar " + codEjemplar + " entregado al usuario.";
+
+            } else {
+                // Si no entra en el if, es que no coincide la reserva con ese ejemplar
+                connection.rollback();
+                return "ERROR: El usuario " + usuarioId + " NO tiene reservado el ejemplar " + codEjemplar + ". Compruebe si tiene reservada otra copia.";
+            }
+
+        } catch (SQLException e) {
+            if (connection != null) connection.rollback();
+            throw e;
+        } finally {
+            if (connection != null) connection.setAutoCommit(true);
+            if (rs != null) rs.close();
+            if (psCheck != null) psCheck.close();
+            if (psUpdate != null) psUpdate.close();
+        }
+        return mensaje;
+    }
+    
+    ////////////////////////////////
+    // RF-3.4: DEVOLVER LIBRO     //
+    ///////////////////////////////
+    public String devolverLibro(int usuarioId, String isbn, int codEjemplar) throws SQLException {
+        
+        String mensaje = "";
+        PreparedStatement psCheck = null;
+        PreparedStatement psUpdateReserva = null;
+        PreparedStatement psUpdateEjemplar = null;
+        ResultSet rs = null;
+
+        try {
+            connection.setAutoCommit(false);
+            
+            //comprobamos si el usuario existe 
+            if (!existeUsuario(usuarioId)) {
+                connection.rollback();
+                return "ERROR: El usuario con ID " + usuarioId + " no existe.";
+            }
+
+            // Buscamos si tiene reservado ESE ejemplar concreto y si está retirado
+            String sqlCheck = "SELECT RESERVA_VALIDA,ES_RETIRADO FROM RESERVAS_LIBROS " +
+                              "WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ? ";
+            
+            psCheck = connection.prepareStatement(sqlCheck);
+            psCheck.setInt(1, usuarioId);
+            psCheck.setString(2, isbn);
+            psCheck.setInt(3, codEjemplar); 
+            
+            rs = psCheck.executeQuery();
+            
+            if (rs.next()) {
+                String esValida = rs.getString("RESERVA_VALIDA");
+                String esRetirado = rs.getString("ES_RETIRADO");
+                
+                // Si está finalizada ('F') -> Significa que YA se devolvió
+                if ("F".equals(esValida)) {
+                     connection.rollback();
+                     return "ERROR: Este libro ya ha sido DEVUELTO (Reserva finalizada).";
+                }
+                
+                //Si no se ha retirado , no se puede devolver
+                if ("N".equals(esRetirado)) {
+                     connection.rollback();
+                     return "ERROR: Ese ejemplar consta como NO RETIRADO. Use Cancelar Reserva.";
+                }
+
+                // 2. ACTUALIZAR RESERVA (Cerrarla)
+                String sqlRes = "UPDATE RESERVAS_LIBROS SET RESERVA_VALIDA = 'F' " +
+                                "WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ?";
+                psUpdateReserva = connection.prepareStatement(sqlRes);
+                psUpdateReserva.setInt(1, usuarioId);
+                psUpdateReserva.setString(2, isbn);
+                psUpdateReserva.setInt(3, codEjemplar);
+                psUpdateReserva.executeUpdate();
+
+                // 3. LIBERAR EJEMPLAR (Ponerlo Disponible)
+                String sqlEjem = "UPDATE EJEMPLAR SET Estado = ? WHERE ISBN = ? AND CodEjemplar = ?";
+                psUpdateEjemplar = connection.prepareStatement(sqlEjem);
+                psUpdateEjemplar.setString(1, EstadoEjemplar.DISPONIBLE.name());
+                psUpdateEjemplar.setString(2, isbn);
+                psUpdateEjemplar.setInt(3, codEjemplar);
+                psUpdateEjemplar.executeUpdate();
+
+                connection.commit();
+                mensaje = "ÉXITO: Libro devuelto. El Ejemplar " + codEjemplar + " vuelve a estar DISPONIBLE.";
+            
+            } else {
+                connection.rollback();
+                return "ERROR: No consta que este usuario tenga el Ejemplar " + codEjemplar + " de este libro.";
+            }
+
+        } catch (SQLException e) {
+            if (connection != null) connection.rollback();
+            throw e;
+        } finally {
+            if (connection != null) connection.setAutoCommit(true);
+            if (rs != null) rs.close();
+            if (psCheck != null) psCheck.close();
+            if (psUpdateReserva != null) psUpdateReserva.close();
+            if (psUpdateEjemplar != null) psUpdateEjemplar.close();
+        }
+        return mensaje;
     }
 
     // Método auxiliar común
@@ -182,9 +464,6 @@ public class ReservaLibroDAO {
         return mensaje;
     }
 
-    //////////////////////////////
-    //RF-3.3: COMPROBAR RESERVA//
-    /////////////////////////////
 
     public boolean tieneReservaActiva(int usuarioId, String isbn) throws SQLException {
         //buscamos la reserva de ese libro y ese usuario y que sea valida

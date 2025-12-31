@@ -74,6 +74,8 @@ public class EjemplarDAO {
         // Ejecuto la inserción
         ps.executeUpdate();
         
+        conexion.commit();
+        
         // Cierro el recurso utilizado
         ps.close();
     }
@@ -126,6 +128,8 @@ public class EjemplarDAO {
         
         // Ejecuto la actualización
         ps.executeUpdate();
+        
+        conexion.commit();
         
         // Cierro el recurso utilizado
         ps.close();

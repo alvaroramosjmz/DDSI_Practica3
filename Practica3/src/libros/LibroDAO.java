@@ -84,6 +84,7 @@ public class LibroDAO {
         
         // Ejecutamos la sentancia y cerramos el statement
         ps.executeUpdate();
+        conexion.commit();
         ps.close();
     }
 

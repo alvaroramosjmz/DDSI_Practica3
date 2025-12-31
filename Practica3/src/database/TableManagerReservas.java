@@ -48,6 +48,9 @@ public class TableManagerReservas {
                 + "  FECHA_RESERVA DATE DEFAULT SYSDATE NOT NULL, "
                 + "  RESERVA_VALIDA CHAR(1) DEFAULT 'T' CHECK (RESERVA_VALIDA IN ('T', 'F')), "
                 
+                //Para comprobar si se ha devuelto el libro o no
+                + "  ES_RETIRADO CHAR(1) DEFAULT 'N' CHECK (ES_RETIRADO IN ('S', 'N')), "
+                
                 // Clave Foránea 1: Un usuario debe existir en la tabla de Lectores
                 + "  CONSTRAINT FK_RESERVAS_LECTOR FOREIGN KEY (USUARIO_ID) "
                 + "    REFERENCES LECTORES(USUARIO_ID) ON DELETE CASCADE, " //si un usuario se da de baja , se borran autmaticamente sus reservas

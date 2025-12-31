@@ -79,28 +79,47 @@ public class GestionReservas {
         } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
     }
 
-    private void comprobarReserva() throws SQLException {
+    private void comprobarReserva() {
+        System.out.println("(El bibliotecario debe verificar el nº de copia físico)");
+        
         System.out.print("Introduzca ID Usuario: ");
         try {
             int uid = Integer.parseInt(sc.nextLine());
-            System.out.print("Introduzca ISBN a retirar: ");
+            
+            System.out.print("Introduzca ISBN: ");
             String isbn = sc.nextLine();
-            if (dao.tieneReservaActiva(uid, isbn)) {
-                System.out.println(">> OK: Reserva valida. Puede entregar el libro.");
-            } else {
-                System.out.println(">> DENEGADO: No tiene reserva activa.");
-            }
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
+
+            System.out.print("Introduzca Nº Ejemplar (Copia): ");
+            int codEjemplar = Integer.parseInt(sc.nextLine());
+
+            System.out.println(dao.confirmarRetirada(uid, isbn, codEjemplar));
+            
+        } catch (NumberFormatException e) { 
+            System.out.println("ERROR: Los IDs deben ser numéricos."); 
+        } catch (SQLException e) {
+            System.out.println("ERROR SQL: " + e.getMessage());
+        }
     }
 
-    private void devolverLibro() throws SQLException {
+    
+    private void devolverLibro() {
         System.out.print("Introduzca ID Usuario: ");
         try {
             int uid = Integer.parseInt(sc.nextLine());
-            System.out.print("Introduzca ISBN devuelto: ");
+            
+            System.out.print("Introduzca ISBN: ");
             String isbn = sc.nextLine();
-            System.out.println(dao.devolverLibro(uid, isbn));
-        } catch (NumberFormatException e) { System.out.println("ID debe ser numerico."); }
+            
+            System.out.print("Introduzca Código Ejemplar (Mire el libro físico): ");
+            int codEjemplar = Integer.parseInt(sc.nextLine());
+
+            System.out.println(dao.devolverLibro(uid, isbn, codEjemplar));
+            
+        } catch (NumberFormatException e) { 
+            System.out.println("ERROR: Los IDs deben ser numéricos."); 
+        } catch (SQLException e) {
+            System.out.println("ERROR SQL: " + e.getMessage());
+        }
     }
 
     private void historialUsuario() throws SQLException {
