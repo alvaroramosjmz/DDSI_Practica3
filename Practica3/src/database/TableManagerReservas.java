@@ -62,7 +62,6 @@ public class TableManagerReservas {
                 + ")";
         
         stmt.execute(sqlTabla);
-        System.out.println(">> Tabla RESERVAS_LIBROS creada.");
 
         // ==========================================
         // 3. CREACIÓN DE SECUENCIA
@@ -70,7 +69,6 @@ public class TableManagerReservas {
         // Para autogenerar el ID de la reserva (1, 2, 3...)
         String sqlSeq = "CREATE SEQUENCE SEQ_RESERVAS_LIBROS START WITH 1 INCREMENT BY 1";
         stmt.execute(sqlSeq);
-        System.out.println(">> Secuencia SEQ_RESERVAS_LIBROS creada.");
 
         // ==========================================
         // 4. CREACIÓN DE TRIGGER (PL/SQL)
@@ -91,6 +89,5 @@ public class TableManagerReservas {
                 + "END;";
         
         stmt.execute(sqlTrigger);
-        System.out.println(">> Trigger TRG_RESERVAS_ID creado.");
     }
 }

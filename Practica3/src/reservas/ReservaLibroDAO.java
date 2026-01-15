@@ -149,7 +149,6 @@ public class ReservaLibroDAO {
             if (connection != null) connection.rollback(); //hacemos rollback para no quedarnos a medias y eliminamos todos los cambios hechos hasta ese momento
             throw e;
         } finally { //Siempre ejecutamos esto, cerramos todo
-            if (connection != null) connection.setAutoCommit(true);
             if (rs != null) rs.close(); 
             if (psBuscar != null) psBuscar.close();
             if (psInsertar != null) psInsertar.close();
@@ -235,7 +234,6 @@ public class ReservaLibroDAO {
                 if (connection != null) connection.rollback();
                 throw e;
             } finally {
-                if (connection != null) connection.setAutoCommit(true);
                 if (rs != null) rs.close();
                 if (psCheck != null) psCheck.close();
                 if (psUpdateReserva != null) psUpdateReserva.close();
@@ -315,7 +313,6 @@ public class ReservaLibroDAO {
             if (connection != null) connection.rollback();
             throw e;
         } finally {
-            if (connection != null) connection.setAutoCommit(true);
             if (rs != null) rs.close();
             if (psCheck != null) psCheck.close();
             if (psUpdate != null) psUpdate.close();
@@ -399,7 +396,6 @@ public class ReservaLibroDAO {
             if (connection != null) connection.rollback();
             throw e;
         } finally {
-            if (connection != null) connection.setAutoCommit(true);
             if (rs != null) rs.close();
             if (psCheck != null) psCheck.close();
             if (psUpdateReserva != null) psUpdateReserva.close();
@@ -455,7 +451,6 @@ public class ReservaLibroDAO {
             if (connection != null) connection.rollback();
             throw e;
         } finally {
-            if (connection != null) connection.setAutoCommit(true);
             if (rs != null) rs.close();
             if (psBuscar != null) psBuscar.close();
             if (psUpdateReserva != null) psUpdateReserva.close();
