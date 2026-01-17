@@ -334,7 +334,7 @@ public class GestionLibros {
             System.out.print("Descripcion (500 caracteres max. - opcional): "); 
             desc = sc.nextLine();
         
-            if (desc.length()>500 || desc.length()==0){
+            if (desc.length()>500){
                 System.out.println("La descripcion tien que estar entre 1 y 500 caracteres.");
             }
             else{

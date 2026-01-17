@@ -37,33 +37,42 @@ public class IncidenciaEjemplarDAO {
                    + "(ISBN, CodEjemplar, Descripcion, Prioridad, FechaResolucion) "
                    + "VALUES (?, ?, ?, ?, ?)";
         
-        //Preparo la sentencia 
-        PreparedStatement ps = conexion.prepareStatement(sql);
-        
-        // Asigno los valores a los parámetros
-        ps.setString(1, incidencia.getIsbn());
-        ps.setInt(2, incidencia.getCodEjemplar());
-        ps.setString(3, incidencia.getDescripcion());
-        
-        // Asigno la prioridad si existe si no se almacena null
-        if (incidencia.getPrioridad() != null) {
-            ps.setInt(4, incidencia.getPrioridad());
-        } else {
-            ps.setNull(4, java.sql.Types.INTEGER);
+        try{
+            //Preparo la sentencia 
+            PreparedStatement ps = conexion.prepareStatement(sql);
+
+            // Asigno los valores a los parámetros
+            ps.setString(1, incidencia.getIsbn());
+            ps.setInt(2, incidencia.getCodEjemplar());
+            ps.setString(3, incidencia.getDescripcion());
+
+            // Asigno la prioridad si existe si no se almacena null
+            if (incidencia.getPrioridad() != null) {
+                ps.setInt(4, incidencia.getPrioridad());
+            } else {
+                ps.setNull(4, java.sql.Types.INTEGER);
+            }
+
+            // Asigno posible fecha de resolucion si existe si no se almacena null
+            if (incidencia.getFechaResolucion() != null) {
+                ps.setDate(5, new java.sql.Date(incidencia.getFechaResolucion().getTime()));
+            } else {
+                ps.setNull(5, java.sql.Types.DATE);
+            }
+
+            // Ejecuto la actualización
+            ps.executeUpdate();
+            
+            // Guardo los cambios y termino la transaccion
+            conexion.commit();
+            
+            // Cierro el recurso
+            ps.close();
+        }catch(SQLException e){
+            conexion.rollback();
+            throw e;
         }
-        
-        // Asigno posible fecha de resolucion si existe si no se almacena null
-        if (incidencia.getFechaResolucion() != null) {
-            ps.setDate(5, new java.sql.Date(incidencia.getFechaResolucion().getTime()));
-        } else {
-            ps.setNull(5, java.sql.Types.DATE);
-        }
-        
-        // Ejecuto la actualización
-        ps.executeUpdate();
-        
-        // Cierro el recurso
-        ps.close();
+               
     }
     
     //Devuelve el ultimo idIncidencia generado 

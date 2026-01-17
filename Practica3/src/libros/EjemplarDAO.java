@@ -66,18 +66,24 @@ public class EjemplarDAO {
         // Sentencia SQL DE inserción de un nuevo ejemplar
         String sql = "INSERT INTO EJEMPLAR (ISBN) VALUES (?)";
         
-        // Preparo la sentencia
-        PreparedStatement ps = conexion.prepareStatement(sql);
-        
-        // Asigno valor al parámetro
-        ps.setString(1, isbn);
-        // Ejecuto la inserción
-        ps.executeUpdate();
-        
-        conexion.commit();
-        
-        // Cierro el recurso utilizado
-        ps.close();
+        try{
+            // Preparo la sentencia
+            PreparedStatement ps = conexion.prepareStatement(sql);
+
+            // Asigno valor al parámetro
+            ps.setString(1, isbn);
+            // Ejecuto la inserción
+            ps.executeUpdate();
+            
+            // Guardo los cambios termina la transaccion
+            conexion.commit();
+            
+            // Cierro el recurso utilizado
+            ps.close();
+        } catch(SQLException e){
+            conexion.rollback();
+            throw e;
+        }
     }
 
     // Obtiene el codEjemplar disponible de un libro (el primero que encuentre)
@@ -118,21 +124,28 @@ public class EjemplarDAO {
         // Sentencia SQL para actualizar el estado del ejemplar
         String sql = "UPDATE EJEMPLAR SET Estado = ? WHERE ISBN = ? AND CodEjemplar = ?";
         
-        // Preparo la sentencia
-        PreparedStatement ps = conexion.prepareStatement(sql);
-        
-        // Asigno valores a los parámetros 
-        ps.setString(1, estado.name());
-        ps.setString(2, isbn);
-        ps.setInt(3, codEjemplar);
-        
-        // Ejecuto la actualización
-        ps.executeUpdate();
-        
-        conexion.commit();
-        
-        // Cierro el recurso utilizado
-        ps.close();
+        try{
+            // Preparo la sentencia
+            PreparedStatement ps = conexion.prepareStatement(sql);
+
+            // Asigno valores a los parámetros 
+            ps.setString(1, estado.name());
+            ps.setString(2, isbn);
+            ps.setInt(3, codEjemplar);
+
+            // Ejecuto la actualización
+            ps.executeUpdate();
+            
+            // Guardo los cambios y acaba la transaccion
+            conexion.commit();
+            
+            // Cierro el recurso utilizado
+            ps.close();
+            
+        } catch(SQLException e){
+            conexion.rollback();
+            throw e;
+        }
     }
 
     // Comprueba si existe un ejemplar concreto (ISBN + CodEjemplar)

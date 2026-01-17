@@ -42,50 +42,59 @@ public class LibroDAO {
                    + "(ISBN, Autor, Titulo, Editorial, FechaPublicacion, NumPaginas, Edicion, Genero) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
-        // La BD recibe la estructura SQL, comprueba que es correcta y está 
-        // preparada para recibir los valores que le faltan
-        PreparedStatement ps = conexion.prepareStatement(sql);
-                
-        // Asigno los valores a los parámetros
-        ps.setString(1, libro.getIsbn());
-        ps.setString(2, libro.getAutor());
-        ps.setString(3, libro.getTitulo());
-        
-        // editorial, fechaPublicacion, numPaginas, genero y edicion no eran obligatorios
-        if (libro.getEditorial() != null){
-            ps.setString(4, libro.getEditorial());
-        }else{
-            ps.setNull(4, java.sql.Types.VARCHAR);
-        }
+        try{
+            // La BD recibe la estructura SQL, comprueba que es correcta y está 
+            // preparada para recibir los valores que le faltan
+            PreparedStatement ps = conexion.prepareStatement(sql);
 
-        if (libro.getFechaPublicacion() != null){
-            ps.setDate(5, new java.sql.Date(libro.getFechaPublicacion().getTime()));
-        }else{
-            ps.setNull(5, java.sql.Types.DATE);
-        }
+            // Asigno los valores a los parámetros
+            ps.setString(1, libro.getIsbn());
+            ps.setString(2, libro.getAutor());
+            ps.setString(3, libro.getTitulo());
 
-        if (libro.getNumPaginas() != null){
-            ps.setInt(6, libro.getNumPaginas());
-        }else{
-            ps.setNull(6, java.sql.Types.INTEGER);
-        }
-    
-        if (libro.getEdicion() != null) {
-            ps.setInt(7, libro.getEdicion());
-        } else {
-            ps.setNull(7, java.sql.Types.INTEGER);
+            // editorial, fechaPublicacion, numPaginas, genero y edicion no eran obligatorios
+            if (libro.getEditorial() != null){
+                ps.setString(4, libro.getEditorial());
+            }else{
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            }
+
+            if (libro.getFechaPublicacion() != null){
+                ps.setDate(5, new java.sql.Date(libro.getFechaPublicacion().getTime()));
+            }else{
+                ps.setNull(5, java.sql.Types.DATE);
+            }
+
+            if (libro.getNumPaginas() != null){
+                ps.setInt(6, libro.getNumPaginas());
+            }else{
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            if (libro.getEdicion() != null) {
+                ps.setInt(7, libro.getEdicion());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            if (libro.getGenero() != null) {
+                ps.setString(8, libro.getGenero());
+            } else {
+                ps.setNull(8, java.sql.Types.VARCHAR);
+            }
+
+            // Ejecutamos la sentancia y cerramos el statement
+            ps.executeUpdate();
+            ps.close();
+            
+            // Acaba la transicion
+            conexion.commit();
+        } catch(SQLException e){
+            conexion.rollback();
+            throw e;
         }
         
-        if (libro.getGenero() != null) {
-            ps.setString(8, libro.getGenero());
-        } else {
-            ps.setNull(8, java.sql.Types.VARCHAR);
-        }
-        
-        // Ejecutamos la sentancia y cerramos el statement
-        ps.executeUpdate();
-        conexion.commit();
-        ps.close();
+      
     }
 
     
