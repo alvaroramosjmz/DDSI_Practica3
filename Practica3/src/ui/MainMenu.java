@@ -74,8 +74,8 @@ public class MainMenu {
                     
                     case 3 -> {
                         try {                          
-                            reservas.ReservaLibroDAO reservaDAO = new reservas.ReservaLibroDAO(conn);
-                            reservas.GestionReservas gestionReservas = new reservas.GestionReservas(reservaDAO);
+                            ReservaLibroDAO reservaDAO = new ReservaLibroDAO(conn);
+                            GestionReservas gestionReservas = new GestionReservas(reservaDAO);
                             gestionReservas.mostrarMenu();
 
                         } catch (Exception e) {
