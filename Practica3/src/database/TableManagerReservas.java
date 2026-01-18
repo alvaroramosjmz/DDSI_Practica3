@@ -27,19 +27,13 @@ public class TableManagerReservas {
     public void crearEstructuraReservas() throws SQLException {
         Statement stmt = connection.createStatement();
 
-        // ==========================================
         // 1. FASE DE LIMPIEZA (DROPS)
         // Borramos en orden inverso a la creación
-        // ==========================================
         try { stmt.execute("DROP TRIGGER TRG_RESERVAS_ID"); } catch (SQLException e) {}
         try { stmt.execute("DROP TABLE RESERVAS_LIBROS CASCADE CONSTRAINTS"); } catch (SQLException e) {}
         try { stmt.execute("DROP SEQUENCE SEQ_RESERVAS_LIBROS"); } catch (SQLException e) {}
 
-        // ==========================================
         // 2. CREACIÓN DE LA TABLA
-        // ==========================================
-        // - LECTORES (Gestionada por TableManagerLectores)
-        // - EJEMPLAR (Gestionada por TableManagerLibros)
         String sqlTabla = "CREATE TABLE RESERVAS_LIBROS ("
                 + "  RESERVA_ID NUMBER PRIMARY KEY, "
                 + "  ISBN VARCHAR2(13) NOT NULL, "
@@ -48,37 +42,32 @@ public class TableManagerReservas {
                 + "  FECHA_RESERVA DATE DEFAULT SYSDATE NOT NULL, "
                 + "  RESERVA_VALIDA CHAR(1) DEFAULT 'T' CHECK (RESERVA_VALIDA IN ('T', 'F')), "
                 
-                //Para comprobar si se ha devuelto el libro o no
+                //Para comprobar si se ha retirado el libro o no
                 + "  ES_RETIRADO CHAR(1) DEFAULT 'N' CHECK (ES_RETIRADO IN ('S', 'N')), "
                 
                 // Clave Foránea 1: Un usuario debe existir en la tabla de Lectores
                 + "  CONSTRAINT FK_RESERVAS_LECTOR FOREIGN KEY (USUARIO_ID) "
-                + "    REFERENCES LECTORES(USUARIO_ID) ON DELETE CASCADE, " //si un usuario se da de baja , se borran autmaticamente sus reservas
+                + "    REFERENCES LECTORES(USUARIO_ID) ON DELETE CASCADE, " //si un usuario se da de baja , se borran automaticamente sus reservas
 
                 // Clave Foránea 2: El ejemplar debe existir en la tabla de Libros/Ejemplares
-                // OJO: TableManagerLibros define la PK de Ejemplar como (ISBN, CodEjemplar)
                 + "  CONSTRAINT FK_RESERVAS_EJEMPLAR FOREIGN KEY (ISBN, COD_EJEMPLAR) "
                 + "    REFERENCES EJEMPLAR(ISBN, CodEjemplar) ON DELETE CASCADE "
                 + ")";
         
         stmt.execute(sqlTabla);
 
-        // ==========================================
         // 3. CREACIÓN DE SECUENCIA
-        // ==========================================
         // Para autogenerar el ID de la reserva (1, 2, 3...)
         String sqlSeq = "CREATE SEQUENCE SEQ_RESERVAS_LIBROS START WITH 1 INCREMENT BY 1";
         stmt.execute(sqlSeq);
 
-        // ==========================================
         // 4. CREACIÓN DE TRIGGER (PL/SQL)
-        // ==========================================
-        // Requisito Práctica 3: Trigger para asignar ID automáticamente y validar fecha.
+        // Trigger para asignar ID automáticamente y validar fecha.
         String sqlTrigger = "CREATE OR REPLACE TRIGGER TRG_RESERVAS_ID "
-                + "BEFORE INSERT ON RESERVAS_LIBROS "
+                + "BEFORE INSERT ON RESERVAS_LIBROS " //antes de guardar la nueva reserva, haz esto
                 + "FOR EACH ROW "
                 + "BEGIN "
-                // Si no viene ID, usamos la secuencia
+                // Si se intenta guardar una reserva sin ponerle numero, usamos la secuencia
                 + "  IF :NEW.RESERVA_ID IS NULL THEN "
                 + "    SELECT SEQ_RESERVAS_LIBROS.NEXTVAL INTO :NEW.RESERVA_ID FROM DUAL; "
                 + "  END IF; "

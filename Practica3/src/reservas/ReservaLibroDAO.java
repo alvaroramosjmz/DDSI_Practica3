@@ -404,61 +404,6 @@ public class ReservaLibroDAO {
         return mensaje;
     }
 
-    // Método auxiliar común
-    private String finalizarReservaGenerico(int usuarioId, String isbn, String msgExito) throws SQLException {
-        String mensaje = "";
-        PreparedStatement psBuscar = null;
-        PreparedStatement psUpdateReserva = null;
-        PreparedStatement psUpdateEjemplar = null;
-        ResultSet rs = null;
-
-        try {
-            connection.setAutoCommit(false); //lo ponemos a false para que si algo falla, no guarde nada
-
-            // Buscar reserva activa de ese usuario con el isbn del libro que habia reservado,  necesitamos saber que ejemplar se llevo
-            String sqlBuscar = "SELECT COD_EJEMPLAR FROM RESERVAS_LIBROS WHERE USUARIO_ID = ? AND ISBN = ? AND RESERVA_VALIDA = 'T'";
-            psBuscar = connection.prepareStatement(sqlBuscar);
-            psBuscar.setInt(1, usuarioId);
-            psBuscar.setString(2, isbn);
-            rs = psBuscar.executeQuery();
-
-            if (rs.next()) { //si encontramos la reserva , guardamos el cod del ejemplar que se llevo
-                int codEjemplar = rs.getInt("COD_EJEMPLAR");
-
-                // Cambiamos la reserva para que no sea valida porque el libro ya se ha devuelto
-                String sqlRes = "UPDATE RESERVAS_LIBROS SET RESERVA_VALIDA = 'F' WHERE USUARIO_ID = ? AND ISBN = ? AND COD_EJEMPLAR = ?";
-                psUpdateReserva = connection.prepareStatement(sqlRes);
-                psUpdateReserva.setInt(1, usuarioId);
-                psUpdateReserva.setString(2, isbn);
-                psUpdateReserva.setInt(3, codEjemplar);
-                psUpdateReserva.executeUpdate();
-
-                // Liberar ejemplar -> Ponerlo DISPONIBLE
-                String sqlEjem = "UPDATE EJEMPLAR SET Estado = ? WHERE ISBN = ? AND CodEjemplar = ?";
-                psUpdateEjemplar = connection.prepareStatement(sqlEjem);
-                psUpdateEjemplar.setString(1, EstadoEjemplar.DISPONIBLE.name());
-                psUpdateEjemplar.setString(2, isbn);
-                psUpdateEjemplar.setInt(3, codEjemplar);
-                psUpdateEjemplar.executeUpdate();
-
-                connection.commit(); //todo ha ido bien, guardamos
-                mensaje = "ÉXITO: " + msgExito + ". Ejemplar " + codEjemplar + " ahora está DISPONIBLE.";
-            } else {
-                mensaje = "ERROR: No existe reserva activa para este usuario y libro.";
-            }
-
-        } catch (SQLException e) {
-            if (connection != null) connection.rollback();
-            throw e;
-        } finally {
-            if (rs != null) rs.close();
-            if (psBuscar != null) psBuscar.close();
-            if (psUpdateReserva != null) psUpdateReserva.close();
-            if (psUpdateEjemplar != null) psUpdateEjemplar.close();
-        }
-        return mensaje;
-    }
-
 
     public boolean tieneReservaActiva(int usuarioId, String isbn) throws SQLException {
         //buscamos la reserva de ese libro y ese usuario y que sea valida
